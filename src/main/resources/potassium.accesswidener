@@ -1,0 +1,12 @@
+accessWidener v1 named
+
+accessible	field	net/minecraft/nbt/CompoundTag	tags	Ljava/util/Map;
+
+accessible	field	net/minecraft/command/arguments/LookingPosArgument	x	D
+accessible	field	net/minecraft/command/arguments/LookingPosArgument	y	D
+accessible	field	net/minecraft/command/arguments/LookingPosArgument	z	D
+
+accessible	field	net/minecraft/command/arguments/DefaultPosArgument	x	Lnet/minecraft/command/arguments/CoordinateArgument;
+accessible	field	net/minecraft/command/arguments/DefaultPosArgument	y	Lnet/minecraft/command/arguments/CoordinateArgument;
+accessible	field	net/minecraft/command/arguments/DefaultPosArgument	z	Lnet/minecraft/command/arguments/CoordinateArgument;
+accessible	field	net/minecraft/command/arguments/CoordinateArgument	value	D

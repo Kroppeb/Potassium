@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "potassium",
+  "version": "${version}",
+
+  "name": "Potassium",
+  "description": "Potassium is a Minecraft mod that optimizes the use of vanilla datapacks",
+  "authors": [
+    "Kroppeb"
+  ],
+  "contact": {
+    "homepage": "https://fabricmc.net/",
+    "sources": "https://github.com/FabricMC/fabric-example-mod"
+  },
+
+  "license": "<*>",
+  "icon": "assets/potassium/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "net.fabricmc.example.ExampleMod"
+    ]
+  },
+  "mixins": [
+    "potassium.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.7.4",
+    "minecraft": "1.15.x"
+  },
+  "accessWidener" : "potassium.accesswidener"
+}
