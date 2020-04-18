@@ -1,9 +1,8 @@
 package kroppeb.server.command;
 
+import net.minecraft.server.command.ServerCommandSource;
 import org.objectweb.asm.MethodVisitor;
 
-public abstract class Command {
-	public void addFields(FunctionNamespaceBuilder.FunctionBuilder fb){}
-	
-	public abstract int buildTo(MethodVisitor mv, String className);
+public interface Command {
+	public abstract void execute(ServerCommandSource source);
 }
