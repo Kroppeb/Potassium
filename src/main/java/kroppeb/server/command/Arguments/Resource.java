@@ -1,10 +1,8 @@
 package kroppeb.server.command.Arguments;
 
-import kroppeb.server.command.StringReader;
-import kroppeb.server.command.commands.Summon;
+import kroppeb.server.command.Reader;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class Resource {
@@ -16,7 +14,7 @@ public class Resource {
 		this.path = path;
 	}
 	
-	public static Resource read(StringReader reader){
+	public static Resource read(Reader reader){
 		String ns = reader.readIdentifier();
 		List<String> path = new ArrayList<String>();
 		if(reader.tryRead(':')){

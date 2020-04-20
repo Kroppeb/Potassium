@@ -5,7 +5,7 @@ import kroppeb.server.command.commands.Summon;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class Parser {
-	static Object readFunction(StringReader reader){
+	static Object readFunction(Reader reader){
 		String command = reader.readWord();
 		switch (command){
 			case "summon":

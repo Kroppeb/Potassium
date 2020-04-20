@@ -25,7 +25,7 @@ public abstract class Summon implements Command {
 		}
 		
 		@Override
-		public void execute(ServerCommandSource source) {
+		public int execute(ServerCommandSource source) {
 			ServerWorld world = source.getWorld();
 			Vec3d pos = this.pos.toAbsolutePos(source);
 			if(!World.method_25953(new BlockPos(pos)))
@@ -41,6 +41,7 @@ public abstract class Summon implements Command {
 					((MobEntity) entity2).initialize(world, world.getLocalDifficulty(entity2.getBlockPos()), SpawnType.COMMAND, (EntityData) null, (CompoundTag) null);
 				}
 			}
+			return 1;
 		}
 	}
 	public static class SummonLightning extends Summon {
@@ -51,13 +52,14 @@ public abstract class Summon implements Command {
 		}
 		
 		@Override
-		public void execute(ServerCommandSource source) {
+		public int execute(ServerCommandSource source) {
 			ServerWorld world = source.getWorld();
 			Vec3d pos = this.pos.toAbsolutePos(source);
 			if(!World.method_25953(new BlockPos(pos)))
 				throw new IllegalArgumentException(); // TODO better errors
 			LightningEntity lightningEntity = new LightningEntity(world, pos.x, pos.y, pos.z, false);
 			world.addLightning(lightningEntity);
+			return 1;
 		}
 	}
 	
@@ -74,7 +76,7 @@ public abstract class Summon implements Command {
 	}
 	
 	
-	static public Summon read(StringReader reader){
+	static public Summon read(Reader reader){
 		Resource entityType = Resource.read(reader);
 		PosArgument pos = null;
 		CompoundTag tag = null;

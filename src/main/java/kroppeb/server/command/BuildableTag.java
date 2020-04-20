@@ -22,7 +22,7 @@ public class BuildableTag implements Buildable {
 	}
 	
 	
-	static public CompoundTag readCompoundTag(StringReader reader) {
+	static public CompoundTag readCompoundTag(Reader reader) {
 		CompoundTag tag = new CompoundTag();
 		reader.read('{');
 		while (!reader.tryRead('}')) {
@@ -33,7 +33,7 @@ public class BuildableTag implements Buildable {
 		return tag;
 	}
 	
-	static public Tag readTag(StringReader reader) {
+	static public Tag readTag(Reader reader) {
 		switch (reader.peek()) {
 			case '{':
 				return readCompoundTag(reader);
@@ -44,7 +44,7 @@ public class BuildableTag implements Buildable {
 		}
 	}
 	
-	private static ListTag readListTag(StringReader reader) {
+	private static ListTag readListTag(Reader reader) {
 		reader.readChar('[');
 		ListTag list = new ListTag();
 		byte type = -1;
@@ -69,7 +69,7 @@ public class BuildableTag implements Buildable {
 		return list;
 	}
 	
-	static public Tag readPrimitiveTag(StringReader reader) {
+	static public Tag readPrimitiveTag(Reader reader) {
 		if (reader.isQuotedStringStart())
 			return StringTag.of(reader.readQuotedString());
 		String s = reader.readUnquotedString();
