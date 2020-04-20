@@ -10,3 +10,9 @@ accessible	field	net/minecraft/command/arguments/DefaultPosArgument	x	Lnet/minec
 accessible	field	net/minecraft/command/arguments/DefaultPosArgument	y	Lnet/minecraft/command/arguments/CoordinateArgument;
 accessible	field	net/minecraft/command/arguments/DefaultPosArgument	z	Lnet/minecraft/command/arguments/CoordinateArgument;
 accessible	field	net/minecraft/command/arguments/CoordinateArgument	value	D
+
+
+accessible	field	net/minecraft/server/command/ServerCommandSource	level	I
+accessible	field	net/minecraft/server/command/ServerCommandSource	output	Lnet/minecraft/server/command/CommandOutput;
+accessible	field	net/minecraft/server/command/ServerCommandSource	silent	Z
+accessible	field	net/minecraft/server/command/ServerCommandSource	resultConsumer Lcom/mojang/brigadier/ResultConsumer;

@@ -1,8 +1,10 @@
-package kroppeb.server.command;
+package kroppeb.server.command.reader;
 
 
-import kroppeb.server.command.reader.ReaderException;
-import net.minecraft.command.arguments.PosArgument;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Direction;
+
+import java.util.EnumSet;
 
 
 public interface Reader {
@@ -36,7 +38,16 @@ public interface Reader {
 	 */
 	String readWord() throws ReaderException;
 	
-	@Deprecated
+	/**
+	 * readWord and asserts that we are at the end or will skip ws
+	 */
+	default String readLiteral() throws ReaderException{
+		String word = readWord();
+		if(canRead())
+			moveNext();
+		return word;
+	}
+	
 	void readChar(char c) throws ReaderException;
 	
 	/**
@@ -59,7 +70,7 @@ public interface Reader {
 	
 	String readUnquotedString() throws ReaderException;
 	
-	String readIdentifier() throws ReaderException;
+	Identifier readIdentifier() throws ReaderException;
 	
 	static boolean isAllowedInUnquotedString(final char c) {
 		return c >= '0' && c <= '9'
@@ -73,7 +84,8 @@ public interface Reader {
 		return c >= '0' && c <= '9'
 				|| c >= 'a' && c <= 'z'
 				|| c == '_' || c == '-'
-				|| c == '.';
+				|| c == '.' || c == '/'
+				|| c == ':';
 	}
 	
 	/**
@@ -89,10 +101,46 @@ public interface Reader {
 		return false;
 	}
 	
-	@Deprecated
-	PosArgument readPos() throws ReaderException;
-	
 	String readLine() throws ReaderException;
-	void skipLine();
 	void endLine() throws ReaderException;
+	
+	default boolean isWhiteSpace() {
+		char c = peek();
+		return c == ' ' || c == '\t';
+	}
+	
+	/**
+	 * move next if possible
+	 * @throws ReaderException if the reader can't read;
+	 */
+	default void next() throws ReaderException {
+		if(isWhiteSpace())
+			moveNext();
+	}
+	
+	/**
+	 * move next if possible
+	 * @return if there is new data to read.
+	 */
+	default boolean tryNext() {
+		if(isWhiteSpace()) {
+			try {
+				moveNext();
+			} catch (ReaderException e) {
+				return false; // should not happen i think
+			}
+		}
+		return canRead();
+	}
+	
+	int readInt();
+	@Deprecated
+	EnumSet<Direction.Axis> readSwizzle();
+	
+	/**
+	 * tries to read given literal
+	 * @param as
+	 * @return
+	 */
+	boolean tryReadLiteral(String as);
 }

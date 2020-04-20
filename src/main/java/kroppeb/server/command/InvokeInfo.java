@@ -1,5 +1,5 @@
 package kroppeb.server.command;
-
+/*
 public class InvokeInfo {
 	final public String methodName;
 	final public Uses[] uses;
@@ -11,3 +11,4 @@ public class InvokeInfo {
 		this.cmd = cmd;
 	}
 }
+*/

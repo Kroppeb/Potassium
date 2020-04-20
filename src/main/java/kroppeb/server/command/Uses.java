@@ -1,10 +1,9 @@
 package kroppeb.server.command;
 
-import kroppeb.server.command.commands.Buildable;
 import org.objectweb.asm.MethodVisitor;
 
 import static org.objectweb.asm.Opcodes.*;
-
+/*
 public abstract class Uses {
 	public abstract int load(MethodVisitor mv);
 	
@@ -58,3 +57,4 @@ public abstract class Uses {
 		}
 	}
 }
+*/

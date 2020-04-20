@@ -1,8 +1,6 @@
 package kroppeb.server.command;
 
 
-import org.objectweb.asm.Type;
-
 public class CommandData {
 	public final Command cmd;
 	public final String name;

@@ -1,7 +1,6 @@
 package kroppeb.server.command;
 
-import kroppeb.server.command.Arguments.Resource;
-import kroppeb.server.command.commands.Buildable;
+import kroppeb.server.command.arguments.Resource;
 import kroppeb.server.command.commands.Summon;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -87,102 +86,18 @@ public class FunctionNamespaceBuilder {
 			mv.visitMaxs(2, 1);
 			mv.visitEnd();
 		}
-		
-		public void addField(Buildable buildable){
-			// TODO remove
-		}
 	}
 	
-	public static void main(String[] args) {
-		ClassWriter writer = new ClassWriter(0);
-		ClassVisitor visitor = writer;
-		visitor = new CheckClassAdapter(visitor);
-		visitor = new TraceClassVisitor(visitor, new PrintWriter(System.out));
-		FunctionNamespaceBuilder builder = new FunctionNamespaceBuilder(visitor, "bat_grenades");
-		CompoundTag nbt0 = new CompoundTag();
-		
-		nbt0.putString("id", "minecraft:creeper");
-		nbt0.putString("CustomName", "'{\"translate\": \"entity.minecraft.bat\"}'");
-		nbt0.putByte("ExplosionRadius", (byte) 1);
-		nbt0.putByte("ignited", (byte) 1);
-		nbt0.putShort("Fuse", (short) 0);
-		ListTag tags = new ListTag();
-		tags.addTag(0, StringTag.of("gm4_bat_grenade"));
-		nbt0.put("Tags", tags);
-		
-		Command cmd = Summon.of(new Resource(null, new String[]{"creeper"}), BuildablePos.SELF, nbt0);
-		FunctionBuilder fb = builder.addFunction("summon");
-		fb.addCommand(cmd);
-		
-		builder.build();
-		
-		
-		
-		
-		File f = new File("K:\\Minecraft\\fabric\\potassium\\src\\main\\java\\kroppeb\\test\\result.class");
-		try (FileOutputStream fos = (new FileOutputStream(f))){
-			fos.write(writer.toByteArray());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 	
-	private void build() {
+	
+	public void build() {
 		// fields
 		int i = 0;
 		for (CommandData cd : fields)
 			writer
 					.visitField(ACC_STATIC, cd.name, "Lkroppeb/server/command/Command;", null, null)
 					.visitEnd();
-		
-		/*
-		{
-		
-			// old <init>
-			StringBuilder stringBuilder = new StringBuilder("(");
-			for (int j = 0; j < fields.size(); j++)
-				stringBuilder.append("Lkroppeb/server/command/Command;");
-			stringBuilder.append(")V");
-			
-			
-			MethodVisitor init = writer.visitMethod(ACC_PUBLIC, "<init>", stringBuilder.toString(), null, null);
-			
-			init.visitCode();
-			
-			// debug info
-			Label start = new Label();
-			Label end = new Label();
-			
-			init.visitLabel(start);
-			
-			// call super constructor
-			init.visitVarInsn(ALOAD, 0);
-			init.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
-			
-			i = 1;
-			for (CommandData cd : fields) {
-				init.visitVarInsn(ALOAD, 0);
-				init.visitVarInsn(ALOAD, i);
-				init.visitFieldInsn(PUTFIELD, fullName, cd.name, "Lkroppeb/server/command/Command;");
-			}
-			
-			
-			init.visitInsn(RETURN);
-			
-			// debug info
-			init.visitLabel(end);
-			{
-				init.visitLocalVariable("this", descriptor, null, start, end, 0);
-				i = 1;
-				for (CommandData cd : fields) {
-					init.visitLocalVariable(cd.name, "Lkroppeb/server/command/Command;", null,start, end, i++);
-				}
-			}
-			init.visitMaxs(2, fields.size() + 1);
-			
-			init.visitEnd();
-		}*/
-		
+				
 		for(FunctionBuilder fb : functions){
 			fb.build();
 		}
@@ -235,7 +150,7 @@ public class FunctionNamespaceBuilder {
 		clinit.visitFieldInsn(GETSTATIC, "kroppeb/server/command/CommandLoader", "commands", "[Lkroppeb/server/command/Command;");
 		clinit.visitVarInsn(ASTORE, 0);
 		
-		for(int j = 0; j < functions.size(); j++){
+		for(int j = 0; j < this.fields.size(); j++){
 			clinit.visitVarInsn(ALOAD, 0);
 			loadInt(clinit, j);
 			clinit.visitInsn(AALOAD);
