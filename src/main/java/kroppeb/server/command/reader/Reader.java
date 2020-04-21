@@ -46,14 +46,20 @@ public interface Reader {
 	String readWord() throws ReaderException;
 	
 	/**
-	 * readWord and asserts that we are at the end or will skip ws
+	 * readUntilWhiteSpace and asserts that we are at the end or will skip ws
 	 */
 	default String readLiteral() throws ReaderException{
-		String word = readWord();
+		String res = readUntilWhitespace();
 		if(canRead())
 			moveNext();
-		return word;
+		return res;
 	}
+	
+	/**
+	 * reads until whitespace or EOL
+	 * @throws ReaderException empty string
+	 */
+	String readUntilWhitespace() throws ReaderException;
 	
 	void readChar(char c) throws ReaderException;
 	
@@ -113,7 +119,7 @@ public interface Reader {
 	
 	default boolean isWhiteSpace() {
 		char c = peek();
-		return c == ' ' || c == '\t';
+		return c == ' ';
 	}
 	
 	/**
@@ -146,8 +152,6 @@ public interface Reader {
 	
 	/**
 	 * tries to read given literal
-	 * @param as
-	 * @return
 	 */
-	boolean tryReadLiteral(String as);
+	boolean tryReadLiteral(String literal);
 }

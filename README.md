@@ -11,6 +11,8 @@ This is an optimization mod that targets vanilla datapacks.
 
 ## Planned features
 
+* Faster selectors
+    * Reverse tag lookup
 * Faster nbt-access by use of `Components`
 * Precompilation of often used helper datapacks.
 * Common datapack structure detection and optimization.

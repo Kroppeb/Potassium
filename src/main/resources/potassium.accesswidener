@@ -16,3 +16,5 @@ accessible	field	net/minecraft/server/command/ServerCommandSource	level	I
 accessible	field	net/minecraft/server/command/ServerCommandSource	output	Lnet/minecraft/server/command/CommandOutput;
 accessible	field	net/minecraft/server/command/ServerCommandSource	silent	Z
 accessible	field	net/minecraft/server/command/ServerCommandSource	resultConsumer Lcom/mojang/brigadier/ResultConsumer;
+
+accessible	field	net/minecraft/command/arguments/EntityAnchorArgumentType$EntityAnchor	offset	Ljava/util/function/BiFunction;

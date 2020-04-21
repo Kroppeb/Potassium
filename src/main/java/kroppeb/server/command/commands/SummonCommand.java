@@ -17,14 +17,13 @@ import net.minecraft.entity.*;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.command.SummonCommand;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-public abstract class Summon implements Command {
-	public static class SummonDefault extends Summon {
+public abstract class SummonCommand implements Command {
+	public static class SummonDefault extends SummonCommand {
 		final PosArgument pos;
 		final CompoundTag tag;
 		final boolean initialize;
@@ -56,7 +55,7 @@ public abstract class Summon implements Command {
 		}
 	}
 	
-	public static class SummonLightning extends Summon {
+	public static class SummonLightning extends SummonCommand {
 		final PosArgument pos;
 		
 		public SummonLightning(PosArgument pos) {
@@ -74,7 +73,7 @@ public abstract class Summon implements Command {
 		}
 	}
 	
-	public static Summon of(Resource type, PosArgument pos, CompoundTag tag) {
+	public static SummonCommand of(Resource type, PosArgument pos, CompoundTag tag) {
 		if (!(type.namespace == null || type.namespace.equals("minecraft")) && type.path.length == 1 && type.path[0]
 				.equals("lightning_bolt")) {
 			boolean init = tag == null;
@@ -87,7 +86,7 @@ public abstract class Summon implements Command {
 	}
 	
 	
-	static public Summon read(Reader reader) throws ReaderException {
+	static public SummonCommand read(Reader reader) throws ReaderException {
 		Resource entityType = Resource.read(reader);
 		PosArgument pos = null;
 		CompoundTag tag = null;
@@ -95,6 +94,6 @@ public abstract class Summon implements Command {
 			pos = ArgumentParser.readPos(reader);
 			if (reader.hasNext()) tag = ArgumentParser.readCompoundTag(reader);
 		}
-		return Summon.of(entityType, pos, tag);
+		return SummonCommand.of(entityType, pos, tag);
 	}
 }

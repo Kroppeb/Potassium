@@ -10,8 +10,9 @@ package kroppeb.server.command.commands;
 import com.mojang.brigadier.ResultConsumer;
 import kroppeb.server.command.Command;
 import kroppeb.server.command.Parser;
-import kroppeb.server.command.Util;
 import kroppeb.server.command.arguments.ArgumentParser;
+import kroppeb.server.command.arguments.Score;
+import kroppeb.server.command.arguments.ScoreComparator;
 import kroppeb.server.command.arguments.Selector;
 import kroppeb.server.command.reader.Reader;
 import kroppeb.server.command.reader.ReaderException;
@@ -25,15 +26,15 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.dimension.Dimension;
 import net.minecraft.world.dimension.DimensionType;
 import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.EnumSet;
 
-public class Execute implements Command {
+public class ExecuteCommand implements Command {
 	
 	
 	private CommandOutput output;
@@ -68,10 +69,10 @@ public class Execute implements Command {
 		resultConsumer = source.resultConsumer;
 		entityAnchor = source.getEntityAnchor();
 		
-		return first.apply();
+		return first.call();
 	}
 	
-	private ServerCommandSource source(){
+	private ServerCommandSource source() {
 		return new ServerCommandSource(
 				output,
 				pos,
@@ -84,15 +85,15 @@ public class Execute implements Command {
 				entity);
 	}
 	
-	public static Execute read(Reader reader) throws ReaderException{
-		Execute res = new Execute();
+	public static ExecuteCommand read(Reader reader) throws ReaderException {
+		ExecuteCommand res = new ExecuteCommand();
 		res.readConverter(reader);
 		return res;
 	}
 	
-	private Converter readConverter(Reader reader) throws ReaderException{
+	private Converter readConverter(Reader reader) throws ReaderException {
 		String subCommand = reader.readLiteral();
-		switch (subCommand){
+		switch (subCommand) {
 			case "align":
 				EnumSet<Direction.Axis> swizzle = reader.readSwizzle();
 				reader.moveNext();
@@ -101,9 +102,12 @@ public class Execute implements Command {
 			case "anchored":
 				String type = reader.readLiteral();
 				switch (type) {
-					case "eyes": return new Anchored(readConverter(reader), EntityAnchorArgumentType.EntityAnchor.EYES);
-					case "feet": return new Anchored(readConverter(reader), EntityAnchorArgumentType.EntityAnchor.FEET);
-					default: throw new ReaderException("Expected <eyes/feet> but got: " + type);
+					case "eyes":
+						return new Anchored(readConverter(reader), EntityAnchorArgumentType.EntityAnchor.EYES);
+					case "feet":
+						return new Anchored(readConverter(reader), EntityAnchorArgumentType.EntityAnchor.FEET);
+					default:
+						throw new ReaderException("Expected <eyes/feet> but got: " + type);
 				}
 			case "as":
 				Selector s = Selector.read(reader);
@@ -118,50 +122,83 @@ public class Execute implements Command {
 			case "in":
 				Identifier id = reader.readIdentifier();
 				DimensionType dim = DimensionType.byId(id);
-				if(dim == null)
+				if (dim == null)
 					throw new ReaderException("Expected valid dimension, got: " + id);
-					
-				return new In(readConverter(reader), dim);
 				
-			// case "facing": TODO
+				return new In(readConverter(reader), dim);
+			
+			case "facing":
+				if (reader.tryReadLiteral("entity")) {
+					s = Selector.read(reader);
+					reader.moveNext();
+					if (reader.tryReadLiteral("eyes"))
+						return new FacingEntity(readConverter(reader), s, EntityAnchorArgumentType.EntityAnchor.EYES);
+					if (reader.tryReadLiteral("feet"))
+						return new FacingEntity(readConverter(reader), s, EntityAnchorArgumentType.EntityAnchor.FEET);
+					throw new ReaderException("unknown facing anchor: " + reader.readLiteral());
+				} else {
+					PosArgument pos = ArgumentParser.readPos(reader);
+					reader.moveNext();
+					return new FacingPos(readConverter(reader), pos);
+				}
+			
 			case "positioned":
-				if(reader.tryReadLiteral("as")){
+				if (reader.tryReadLiteral("as")) {
 					s = Selector.read(reader);
 					reader.moveNext();
 					return new PositionedAs(readConverter(reader), s);
-				}else{
+				} else {
 					PosArgument pos = ArgumentParser.readPos(reader);
 					reader.moveNext();
 					return new Positioned(readConverter(reader), pos);
 				}
-				
-				
+			
+			
 			case "rotated":
-				if(reader.tryReadLiteral("as")){
+				if (reader.tryReadLiteral("as")) {
 					s = Selector.read(reader);
 					reader.moveNext();
 					return new RotatedAs(readConverter(reader), s);
-				}else{
+				} else {
 					throw new NotImplementedException("todo");
 					/*
 					Vec2f
 					reader.moveNext();
 					return new Rotated(readConverter(reader), pos);*/
 				}
-			// case "store": TODO
-			// case "if": TODO
-			// case "unless": TODO
-			case "run": return new Run(Parser.readFunction(reader));
+				// case "store": TODO
+			case "if": return readIf(reader);
+				// case "unless": TODO
+			case "run":
+				return new Run(Parser.readFunction(reader));
 			default:
 				throw new ReaderException("Unknown subcommand: " + subCommand);
 		}
 	}
 	
-	abstract public static class Converter {
-		abstract int apply();
+	Converter readIf(Reader reader) throws ReaderException {
+		String type = reader.readLiteral();
+		switch (type) {
+			case "entity":
+				Selector s = Selector.read(reader);
+				reader.moveNext();
+				return new IfEntity(readConverter(reader), s);
+			case "score":
+				Score score = Score.read(reader);
+				reader.moveNext();
+				ScoreComparator comparator = ScoreComparator.read(reader);
+				reader.moveNext();
+				return new IfScore(readConverter(reader), score, comparator);
+			default:
+				throw new ReaderException("Unknown if subcommand: " + type);
+		}
 	}
 	
-	public class Align extends Converter{
+	abstract public static class Converter {
+		abstract int call();
+	}
+	
+	public class Align extends Converter {
 		final Converter next;
 		final EnumSet<Direction.Axis> axes;
 		Vec3d posCache;
@@ -172,15 +209,16 @@ public class Execute implements Command {
 		}
 		
 		@Override
-		int apply() {
+		int call() {
 			posCache = pos;
 			pos = pos.floorAlongAxes(axes);
-			int r = next.apply();
+			int r = next.call();
 			pos = posCache;
 			return r;
 		}
 	}
-	public class Anchored extends Converter{
+	
+	public class Anchored extends Converter {
 		final Converter next;
 		final EntityAnchorArgumentType.EntityAnchor ea;
 		EntityAnchorArgumentType.EntityAnchor entityAnchorCache;
@@ -191,15 +229,16 @@ public class Execute implements Command {
 		}
 		
 		@Override
-		int apply() {
+		int call() {
 			entityAnchorCache = entityAnchor;
 			entityAnchor = ea;
-			int r = next.apply();
+			int r = next.call();
 			entityAnchor = entityAnchorCache;
 			return r;
 		}
 	}
-	public class As extends Converter{
+	
+	public class As extends Converter {
 		final Converter next;
 		final Selector selector;
 		
@@ -210,18 +249,19 @@ public class Execute implements Command {
 		}
 		
 		@Override
-		int apply() {
+		int call() {
 			Entity entityCache = entity;
 			int r = 0;
 			for (Entity selectorEntity : selector.getEntities(world, pos, entity)) {
 				entity = selectorEntity;
-				r += next.apply();
+				r += next.call();
 			}
 			entity = entityCache;
 			return r;
 		}
 	}
-	public class At extends Converter{
+	
+	public class At extends Converter {
 		final Converter next;
 		final Selector selector;
 		
@@ -232,21 +272,96 @@ public class Execute implements Command {
 		}
 		
 		@Override
-		int apply() {
+		int call() {
 			Vec3d posCache = pos;
 			Vec2f rotCache = rot;
 			int r = 0;
 			for (Entity selectorEntity : selector.getEntities(world, pos, entity)) {
 				pos = selectorEntity.getPos();
 				rot = selectorEntity.getRotationClient();
-				r += next.apply();
+				r += next.call();
 			}
 			pos = posCache;
+			rot = rotCache;
 			return r;
 		}
 	}
-	// facing
-	public class In extends Converter{
+	
+	public class FacingPos extends Converter {
+		final Converter next;
+		final PosArgument posArgument;
+		
+		
+		public FacingPos(Converter next, PosArgument posArgument) {
+			this.next = next;
+			this.posArgument = posArgument;
+		}
+		
+		@Override
+		int call() {
+			Vec2f rotCache = rot;
+			Vec3d start;
+			if (entity == null)
+				start = pos;
+			else
+				start = entityAnchor.offset.apply(pos, entity);
+			
+			Vec3d end = posArgument.toAbsolutePos(source());
+			double d = end.x - start.x;
+			double e = end.y - start.y;
+			double f = end.z - start.z;
+			double g = MathHelper.sqrt(d * d + f * f);
+			float h = MathHelper
+					.wrapDegrees((float) (-(MathHelper.atan2(e, g) * 57.2957763671875D))); // almost 180 / pi
+			float i = MathHelper.wrapDegrees((float) (MathHelper.atan2(f, d) * 57.2957763671875D) - 90.0F);
+			rot = new Vec2f(h, i);
+			int r = next.call();
+			rot = rotCache;
+			return r;
+		}
+	}
+	
+	public class FacingEntity extends Converter {
+		final Converter next;
+		final Selector selector;
+		private EntityAnchorArgumentType.EntityAnchor anchor;
+		
+		
+		public FacingEntity(Converter next, Selector selector, EntityAnchorArgumentType.EntityAnchor anchor) {
+			this.next = next;
+			this.selector = selector;
+			this.anchor = anchor;
+		}
+		
+		@Override
+		int call() {
+			Vec2f rotCache = rot;
+			int r = 0;
+			
+			Vec3d start;
+			if (entity == null)
+				start = pos;
+			else
+				start = entityAnchor.offset.apply(pos, entity);
+			
+			for (Entity selectorEntity : selector.getEntities(world, pos, entity)) {
+				Vec3d end = anchor.positionAt(selectorEntity);
+				double d = end.x - start.x;
+				double e = end.y - start.y;
+				double f = end.z - start.z;
+				double g = MathHelper.sqrt(d * d + f * f);
+				float h = MathHelper
+						.wrapDegrees((float) (-(MathHelper.atan2(e, g) * 57.2957763671875F))); // (180 - 1e-5) / pi
+				float i = MathHelper.wrapDegrees((float) (MathHelper.atan2(f, d) * 57.2957763671875F) - 90.0F);
+				rot = new Vec2f(h, i);
+				r += next.call();
+			}
+			rot = rotCache;
+			return r;
+		}
+	}
+	
+	public class In extends Converter {
 		final Converter next;
 		final DimensionType dimension;
 		
@@ -256,15 +371,16 @@ public class Execute implements Command {
 		}
 		
 		@Override
-		int apply() {
+		int call() {
 			ServerWorld worldCache = world;
 			world = server.getWorld(dimension);
-			int r = next.apply();
+			int r = next.call();
 			world = worldCache;
 			return r;
 		}
 	}
-	public class Positioned extends Converter{
+	
+	public class Positioned extends Converter {
 		final Converter next;
 		final PosArgument innerPos;
 		
@@ -274,15 +390,16 @@ public class Execute implements Command {
 		}
 		
 		@Override
-		int apply() {
+		int call() {
 			Vec3d posCache = pos;
 			pos = innerPos.toAbsolutePos(source());
-			int r = next.apply();
+			int r = next.call();
 			pos = posCache;
 			return r;
 		}
 	}
-	public class PositionedAs extends Converter{
+	
+	public class PositionedAs extends Converter {
 		final Converter next;
 		final Selector selector;
 		
@@ -292,18 +409,19 @@ public class Execute implements Command {
 		}
 		
 		@Override
-		int apply() {
+		int call() {
 			Vec3d posCache = pos;
 			int r = 0;
 			for (Entity selectorEntity : selector.getEntities(world, pos, entity)) {
 				pos = selectorEntity.getPos();
-				r += next.apply();
+				r += next.call();
 			}
 			pos = posCache;
 			return r;
 		}
 	}
-	public class Rotated extends Converter{
+	
+	public class Rotated extends Converter {
 		final Converter next;
 		final Vec2f innerRot;
 		
@@ -313,15 +431,16 @@ public class Execute implements Command {
 		}
 		
 		@Override
-		int apply() {
+		int call() {
 			Vec2f rotCache = rot;
 			rot = innerRot;
-			int r = next.apply();
+			int r = next.call();
 			rot = rotCache;
 			return r;
 		}
 	}
-	public class RotatedAs extends Converter{
+	
+	public class RotatedAs extends Converter {
 		final Converter next;
 		final Selector selector;
 		
@@ -331,19 +450,63 @@ public class Execute implements Command {
 		}
 		
 		@Override
-		int apply() {
+		int call() {
 			Vec2f rotCache = rot;
 			int r = 0;
 			for (Entity selectorEntity : selector.getEntities(world, pos, entity)) {
 				rot = selectorEntity.getRotationClient();
-				r += next.apply();
+				r += next.call();
 			}
 			rot = rotCache;
 			return r;
 		}
 	}
+	
 	// store
-	// if
+	
+	
+	public class IfEntity extends Converter {
+		final Converter next;
+		final Selector selector;
+		
+		public IfEntity(Converter next, Selector selector) {
+			this.next = next;
+			this.selector = selector;
+		}
+		
+		@Override
+		int call() {
+			//if(selector.exists())
+			if (!selector.getEntities(world, pos, entity).isEmpty()) {
+				return next.call(); // TODO should be nullable
+			} else {
+				return 0;
+			}
+		}
+	}
+	
+	public class IfScore extends Converter {
+		final Converter next;
+		final Score score;
+		final ScoreComparator comparator;
+		
+		public IfScore(Converter next, Score score, ScoreComparator comparator) {
+			this.next = next;
+			this.score = score;
+			this.comparator = comparator;
+		}
+		
+		@Override
+		int call() {
+			//if(selector.exists())
+			if (comparator.compareTo(score, world, pos, entity)) {
+				return next.call(); // TODO should be nullable
+			} else {
+				return 0;
+			}
+		}
+	}
+	
 	public class Run extends Converter {
 		final Command cmd;
 		
@@ -352,7 +515,7 @@ public class Execute implements Command {
 		}
 		
 		@Override
-		int apply() {
+		int call() {
 			return cmd.execute(source());
 		}
 		

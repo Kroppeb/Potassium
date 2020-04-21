@@ -116,6 +116,19 @@ public class StringReader implements Reader {
 		return line.substring(pos, index);
 	}
 	
+	
+	@Override
+	public String readUntilWhitespace() throws ReaderException {
+		int start = index;
+		if (!isWhiteSpace()) {
+			do {
+				read();
+			} while (canRead() && !isWhiteSpace());
+			return line.substring(start, index);
+		}else
+			throw new ReaderException("Expected a literal");
+	}
+	
 	boolean endWord(char c){
 		return isWhiteSpace(c) || c == '\n' || c == '\r' ||
 				c == '=' || c == ':' || c == '"' || c == '\'';
@@ -212,11 +225,11 @@ public class StringReader implements Reader {
 	/**
 	 * tries to read given literal
 	 *
-	 * @param as
+	 * @param literal
 	 * @return
 	 */
 	@Override
-	public boolean tryReadLiteral(String as) {
+	public boolean tryReadLiteral(String literal) {
 		return false;
 	}
 }
