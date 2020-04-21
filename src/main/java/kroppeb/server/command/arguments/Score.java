@@ -36,4 +36,12 @@ public class Score {
 		// TODO
 		// world.getScoreboard()
 	}
+	
+	public void addValue(ServerWorld world, Vec3d position, Entity entity, int value) {
+		// TODO
+	}
+	
+	public void setValue(ServerWorld world, Vec3d position, Entity entity, int value) {
+		// TODO
+	}
 }

@@ -44,11 +44,14 @@ public class ScoreHolder {
 		}
 	}
 	
-	public static class Entities extends SingleScoreHolder{
+	public static class Entities extends ScoreHolder{
 		final Selector selector;
 		
 		public Entities(Selector selector) {
 			this.selector = selector;
 		}
 	}
+	
+	static All ALL = new All();
+	public static class All extends ScoreHolder{}
 }

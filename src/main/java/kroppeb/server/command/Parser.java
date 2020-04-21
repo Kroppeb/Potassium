@@ -29,6 +29,8 @@ public class Parser {
 				return Advancement.read(reader);*/
 			case "execute":
 				return ExecuteCommand.read(reader);
+			case "scoreboard":
+				return ScoreboardCommand.read(reader);
 			case "summon":
 				return SummonCommand.read(reader);
 			
