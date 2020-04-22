@@ -167,8 +167,8 @@ public class ExecuteCommand implements Command {
 					return new Rotated(readConverter(reader), pos);*/
 				}
 				// case "store": TODO
-			case "if": return readIf(reader);
-				// case "unless": TODO
+			case "if": return readIf(reader, true);
+			case "unless": return readIf(reader, false);
 			case "run":
 				return new Run(Parser.readFunction(reader));
 			default:
@@ -176,19 +176,19 @@ public class ExecuteCommand implements Command {
 		}
 	}
 	
-	Converter readIf(Reader reader) throws ReaderException {
+	Converter readIf(Reader reader, boolean positive) throws ReaderException {
 		String type = reader.readLiteral();
 		switch (type) {
 			case "entity":
 				Selector s = Selector.read(reader);
 				reader.moveNext();
-				return new IfEntity(readConverter(reader), s);
+				return new IfEntity(readConverter(reader), s, positive);
 			case "score":
 				Score score = Score.read(reader);
 				reader.moveNext();
 				ScoreComparator comparator = ScoreComparator.read(reader);
 				reader.moveNext();
-				return new IfScore(readConverter(reader), score, comparator);
+				return new IfScore(readConverter(reader), score, comparator, positive);
 			default:
 				throw new ReaderException("Unknown if subcommand: " + type);
 		}
@@ -468,16 +468,18 @@ public class ExecuteCommand implements Command {
 	public class IfEntity extends Converter {
 		final Converter next;
 		final Selector selector;
+		final boolean positive;
 		
-		public IfEntity(Converter next, Selector selector) {
+		public IfEntity(Converter next, Selector selector, boolean positive) {
 			this.next = next;
 			this.selector = selector;
+			this.positive = positive;
 		}
 		
 		@Override
 		int call() {
-			//if(selector.exists())
-			if (!selector.getEntities(world, pos, entity).isEmpty()) {
+			// TODO if(selector.exists())
+			if (!selector.getEntities(world, pos, entity).isEmpty() == positive) {
 				return next.call(); // TODO should be nullable
 			} else {
 				return 0;
@@ -489,17 +491,18 @@ public class ExecuteCommand implements Command {
 		final Converter next;
 		final Score score;
 		final ScoreComparator comparator;
+		final boolean positive;
 		
-		public IfScore(Converter next, Score score, ScoreComparator comparator) {
+		public IfScore(Converter next, Score score, ScoreComparator comparator, boolean positive) {
 			this.next = next;
 			this.score = score;
 			this.comparator = comparator;
+			this.positive = positive;
 		}
 		
 		@Override
 		int call() {
-			//if(selector.exists())
-			if (comparator.compareTo(score, world, pos, entity)) {
+			if (comparator.compareTo(score, world, pos, entity) == positive) {
 				return next.call(); // TODO should be nullable
 			} else {
 				return 0;
