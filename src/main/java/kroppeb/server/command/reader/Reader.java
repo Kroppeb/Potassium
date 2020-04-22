@@ -85,6 +85,12 @@ public interface Reader {
 	
 	Identifier readIdentifier() throws ReaderException;
 	
+	default boolean isAllowedInUnquotedString(){
+		return canRead() && isAllowedInUnquotedString(peek());
+	}
+	
+	// make private?
+	@Deprecated
 	static boolean isAllowedInUnquotedString(final char c) {
 		return c >= '0' && c <= '9'
 				|| c >= 'A' && c <= 'Z'
@@ -93,6 +99,12 @@ public interface Reader {
 				|| c == '.' || c == '+';
 	}
 	
+	default boolean isAllowedInIdentifier() {
+		return canRead() && isAllowedInIdentifier(peek());
+	}
+	
+	// make this private?
+	@Deprecated
 	static boolean isAllowedInIdentifier(final char c) {
 		return c >= '0' && c <= '9'
 				|| c >= 'a' && c <= 'z'
@@ -146,7 +158,7 @@ public interface Reader {
 		return canRead();
 	}
 	
-	int readInt();
+	int readInt() throws ReaderException;
 	@Deprecated
 	EnumSet<Direction.Axis> readSwizzle();
 	

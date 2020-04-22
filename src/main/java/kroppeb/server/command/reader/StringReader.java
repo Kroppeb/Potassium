@@ -23,10 +23,10 @@ public class StringReader implements Reader {
 		this.line = line;
 	}
 	
-	public StringReader(){
+	public StringReader() {
 	}
 	
-	public void setLine(String s){
+	public void setLine(String s) {
 		line = s;
 		index = 0;
 	}
@@ -82,14 +82,14 @@ public class StringReader implements Reader {
 	 */
 	@Override
 	public void moveNext() throws ReaderException {
-		if(isWhiteSpace(peek())){
-			do{
+		if (isWhiteSpace(peek())) {
+			do {
 				skip();
-			}while(isWhiteSpace(peek()));
-		}
-		else
+			} while (isWhiteSpace(peek()));
+		} else
 			expected("whitespace");
 	}
+	
 	
 	private void expected(String s) throws ReaderException {
 		throw new ReaderException(
@@ -107,12 +107,12 @@ public class StringReader implements Reader {
 	 */
 	@Override
 	public String readWord() throws ReaderException {
-		if(endWord(peek()))
+		if (endWord(peek()))
 			expected("word");
 		int pos = index;
-		do{
+		do {
 			skip();
-		}while(!endWord(peek()));
+		} while (!endWord(peek()));
 		return line.substring(pos, index);
 	}
 	
@@ -125,18 +125,18 @@ public class StringReader implements Reader {
 				read();
 			} while (canRead() && !isWhiteSpace());
 			return line.substring(start, index);
-		}else
+		} else
 			throw new ReaderException("Expected a literal");
 	}
 	
-	boolean endWord(char c){
+	boolean endWord(char c) {
 		return isWhiteSpace(c) || c == '\n' || c == '\r' ||
 				c == '=' || c == ':' || c == '"' || c == '\'';
 	}
 	
 	@Override
 	public void readChar(char c) throws ReaderException {
-		if(read() != c)
+		if (read() != c)
 			expected("'" + c + "'");
 	}
 	
@@ -155,49 +155,51 @@ public class StringReader implements Reader {
 	 */
 	@Override
 	public String readString() throws ReaderException {
-		if(isQuotedStringStart())
+		if (isQuotedStringStart())
 			return readQuotedString();
 		return readUnquotedString();
 	}
 	
 	@Override
 	public String readQuotedString() throws ReaderException {
-		if(! isQuotedStringStart())
+		if (!isQuotedStringStart())
 			expected("quote");
-		int pos = index+1;
+		int pos = index + 1;
 		char start = read();
-		while(read() != start);
-		return line.substring(pos, index-1);
+		while (read() != start) ;
+		return line.substring(pos, index - 1);
 	}
 	
 	@Override
 	public String readUnquotedString() throws ReaderException {
-		if(!Reader.isAllowedInUnquotedString(peek()))
+		if (!Reader.isAllowedInUnquotedString(peek()))
 			expected("unquoted strings");
 		int pos = index;
-		while(Reader.isAllowedInUnquotedString(peek()))
+		while (Reader.isAllowedInUnquotedString(peek()))
 			read();
-		return line.substring(pos,index);
+		return line.substring(pos, index);
 		
 	}
 	
 	@Override
 	public Identifier readIdentifier() throws ReaderException {
-		if(!Reader.isAllowedInIdentifier(peek()))
+		if (!isAllowedInIdentifier())
 			expected("identifier");
 		int pos = index;
-		while(Reader.isAllowedInIdentifier(peek()))
-			read();
-		String str = line.substring(pos,index);
+		
+		do skip();
+		while (isAllowedInIdentifier());
+		
+		String str = line.substring(pos, index);
 		Identifier id = Identifier.tryParse(str);
-		if(id == null)
-				throw new ReaderException("Couldn't parse " + str + " as an identifier");
+		if (id == null)
+			throw new ReaderException("Couldn't parse " + str + " as an identifier");
 		return id;
 	}
 	
 	@Override
 	public String readLine() throws ReaderException {
-		if(!canRead())
+		if (!canRead())
 			eof("more text");
 		String s = line.substring(index);
 		index = line.length();
@@ -207,14 +209,30 @@ public class StringReader implements Reader {
 	
 	@Override
 	public void endLine() throws ReaderException {
-		if(canRead())
+		if (canRead())
 			expected("end of line");
 		index = line.length();
 	}
 	
 	@Override
-	public int readInt() {
-		return 0;
+	public int readInt() throws ReaderException {
+		char c = peek();
+		int start = index;
+		if(c == '-' || (c >= '0' && c <= '9')){
+			do{
+				skip();
+				if(!canRead())
+					break;
+				c = peek();
+			}while(c >= '0' && c <= '9');
+			try {
+				return Integer.parseInt(line.substring(start, index));
+			}catch (NumberFormatException e){
+				throw new ReaderException("invalid int: " + e.getMessage(), e);
+			}
+		}
+		expected("an integer");
+		return 0; // UNREACHABLE CODE
 	}
 	
 	@Override
@@ -230,6 +248,11 @@ public class StringReader implements Reader {
 	 */
 	@Override
 	public boolean tryReadLiteral(String literal) {
+		if(line.regionMatches(index,literal,0,literal.length())){
+			skip(literal.length());
+			tryNext();
+			return true;
+		}
 		return false;
 	}
 }
