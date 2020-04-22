@@ -27,7 +27,10 @@ public class FunctionFile {
 	public FunctionFile(Resource location, File file) {
 		this.location = location;
 		this.name = location.path[location.path.length - 1];
-		this.commandName = location.namespace + "$$" + String.join("$",location.path);
+		
+		// Can contain `.` which have to be replaced;
+		String preName = location.namespace + "$$" + String.join("$",location.path);
+		this.commandName = preName.replace('.','!');
 		this.file = file;
 	}
 	
