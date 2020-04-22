@@ -7,13 +7,31 @@
 
 package kroppeb.server.command;
 
+import kroppeb.server.command.commands.FunctionCommand;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CommandLoader {
 	public static Command[] commands;
-	public static Map<String, Command> functions;
+	public static Map<String, Command> functions = new HashMap<>();
+	private static List<FunctionCommand> queued = new ArrayList<>();
+	
+	public static void reset(){
+		functions.clear();
+		queued.clear();
+	}
 	
 	public static void loadAll() {
+		for (FunctionCommand command : queued) {
+			command.build();
+		}
+		queued.clear();
+	}
 	
+	public static void queue(FunctionCommand functionCommand) {
+		queued.add(functionCommand);
 	}
 }
