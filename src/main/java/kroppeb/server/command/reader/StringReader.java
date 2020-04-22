@@ -172,10 +172,10 @@ public class StringReader implements Reader {
 	
 	@Override
 	public String readUnquotedString() throws ReaderException {
-		if (!Reader.isAllowedInUnquotedString(peek()))
-			expected("unquoted strings");
+		if (!isAllowedInUnquotedString())
+			expected("unquoted string");
 		int pos = index;
-		while (Reader.isAllowedInUnquotedString(peek()))
+		while (isAllowedInUnquotedString())
 			read();
 		return line.substring(pos, index);
 		
