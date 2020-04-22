@@ -10,8 +10,12 @@ package kroppeb.server.command.arguments;
 import kroppeb.server.command.reader.Reader;
 import kroppeb.server.command.reader.ReaderException;
 import net.minecraft.entity.Entity;
+import net.minecraft.scoreboard.ScoreboardPlayerScore;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
+
+import java.util.Collection;
+import java.util.Collections;
 
 public class Score {
 	final ScoreHolder scoreHolder;
@@ -43,5 +47,13 @@ public class Score {
 	
 	public void setValue(ServerWorld world, Vec3d position, Entity entity, int value) {
 		// TODO
+	}
+	
+	public void resetValue(ServerWorld world, Vec3d position, Entity entity) {
+		// TODO
+	}
+	
+	public Collection<ScoreboardPlayerScore> getAll() {
+		return Collections.emptyList(); // TODO
 	}
 }
