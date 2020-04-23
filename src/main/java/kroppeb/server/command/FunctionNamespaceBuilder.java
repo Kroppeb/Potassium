@@ -10,23 +10,24 @@ package kroppeb.server.command;
 import org.objectweb.asm.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import static kroppeb.server.command.Util.loadInt;
 import static org.objectweb.asm.Opcodes.*;
 
 public class FunctionNamespaceBuilder {
 	final private ClassVisitor writer;
-	final private String name;
+	final private String name = "GeneratedFunctions";
 	final private String fullName;
 	final private String descriptor;
-	final private List<CommandData> fields = new ArrayList<>();
-	final private List<FunctionBuilder> functions = new ArrayList<>();
+	// we'll be adding to these concurrently adding
+	final private Collection<FunctionBuilder> functions = new ConcurrentLinkedDeque<>();
 	
-	public FunctionNamespaceBuilder(ClassVisitor writer, String name) {
+	public FunctionNamespaceBuilder(ClassVisitor writer) {
 		this.writer = writer;
-		this.name = name;
-		this.fullName = "kroppeb/potassium/generated/" + name;
+		this.fullName = "kroppeb/potassium/generated/" + this.name;
 		this.descriptor = "L" + fullName + ";";
 		writer.visit(V1_8,  ACC_FINAL | ACC_PUBLIC | ACC_SUPER, this.name, null, "java/lang/Object", null);
 		// I'm assuming this is to make accessors or something?
@@ -42,6 +43,9 @@ public class FunctionNamespaceBuilder {
 		return fb;
 	}
 	
+	/**
+	 * NOT THREAD SAFE
+	 */
 	public class FunctionBuilder {
 		final String name;
 		final List<CommandData> commands = new ArrayList<>();
@@ -51,9 +55,8 @@ public class FunctionNamespaceBuilder {
 		}
 		
 		public void addCommand(Command cmd) {
-			CommandData cd = new CommandData(cmd, fields.size());
+			CommandData cd = new CommandData(cmd, name + "$$$" + commands.size());
 			commands.add(cd);
-			fields.add(cd);
 		}
 		
 		public void build(){
@@ -87,6 +90,12 @@ public class FunctionNamespaceBuilder {
 	
 	
 	public void build() {
+		ArrayList<CommandData> fields = new ArrayList<>();
+		
+		for (FunctionBuilder fb : functions){
+			fields.addAll(fb.commands);
+		}
+		
 		// fields
 		int i = 0;
 		for (CommandData cd : fields)
@@ -146,7 +155,7 @@ public class FunctionNamespaceBuilder {
 		clinit.visitFieldInsn(GETSTATIC, "kroppeb/server/command/CommandLoader", "commands", "[Lkroppeb/server/command/Command;");
 		clinit.visitVarInsn(ASTORE, 0);
 		
-		for(int j = 0; j < this.fields.size(); j++){
+		for(int j = 0; j < fields.size(); j++){
 			clinit.visitVarInsn(ALOAD, 0);
 			loadInt(clinit, j);
 			clinit.visitInsn(AALOAD);

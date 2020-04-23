@@ -24,28 +24,38 @@ import java.util.List;
 
 public class Parser {
 	static public Command readFunction(Reader reader) throws ReaderException {
+		Command result;
 		String command = reader.readLiteral();
 		switch (command) {/*
 			case "advancement":
 				return Advancement.read(reader);*/
 			case "execute":
-				return ExecuteCommand.read(reader);
+				result = ExecuteCommand.read(reader);
+				break;
 			case "function":
-				return FunctionCommand.read(reader);
+				result = FunctionCommand.read(reader);
+				break;
 			case "kill":
-				return KillCommand.read(reader);
+				result = KillCommand.read(reader);
+				break;
 			case "scoreboard":
-				return ScoreboardCommand.read(reader);
+				result = ScoreboardCommand.read(reader);
+				break;
 			case "setblock":
-				return SetBlockCommand.read(reader);
+				result = SetBlockCommand.read(reader);
+				break;
 			case "summon":
-				return SummonCommand.read(reader);
+				result = SummonCommand.read(reader);
+				break;
 			case "tag":
-				return TagCommand.read(reader);
+				result = TagCommand.read(reader);
+				break;
 			
 			default:
 				throw new ReaderException("Unknown command: " + command);
 		}
+		reader.endLine();
+		return result;
 	}
 	
 	static public List<Command> readFile(List<String> file) throws ReaderException {
@@ -56,7 +66,7 @@ public class Parser {
 		int line = 0;
 		for (String i : file) {
 			line++;
-			reader.setLine(i);
+			reader.setLine(i.trim());
 			if (!reader.canRead() || reader.peek() == '#')
 				continue;
 			try {

@@ -12,8 +12,8 @@ public class CommandData {
 	public final Command cmd;
 	public final String name;
 	
-	public CommandData(Command cmd, int index) {
+	public CommandData(Command cmd, String name) {
 		this.cmd = cmd;
-		name = "command" + "$" + index;
+		this.name = "command" + "$" + name;
 	}
 }
