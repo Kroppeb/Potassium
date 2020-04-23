@@ -16,6 +16,7 @@ import kroppeb.server.command.arguments.ScoreComparator;
 import kroppeb.server.command.arguments.Selector;
 import kroppeb.server.command.reader.Reader;
 import kroppeb.server.command.reader.ReaderException;
+import net.minecraft.block.pattern.CachedBlockPosition;
 import net.minecraft.command.arguments.EntityAnchorArgumentType;
 import net.minecraft.command.arguments.PosArgument;
 import net.minecraft.entity.Entity;
@@ -25,14 +26,12 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec2f;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.*;
 import net.minecraft.world.dimension.DimensionType;
 import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.EnumSet;
+import java.util.function.Predicate;
 
 public class ExecuteCommand implements Command {
 	
@@ -72,6 +71,8 @@ public class ExecuteCommand implements Command {
 		return first.call();
 	}
 	
+	// TODO try to replace as many calls to this as possible
+	@Deprecated
 	private ServerCommandSource source() {
 		return new ServerCommandSource(
 				output,
@@ -95,7 +96,7 @@ public class ExecuteCommand implements Command {
 		String subCommand = reader.readLiteral();
 		switch (subCommand) {
 			case "align":
-				EnumSet<Direction.Axis> swizzle = reader.readSwizzle();
+				EnumSet<Direction.Axis> swizzle = ArgumentParser.readSwizzle(reader);
 				reader.moveNext();
 				Converter next = readConverter(reader);
 				return new Align(next, swizzle);
@@ -167,8 +168,10 @@ public class ExecuteCommand implements Command {
 					return new Rotated(readConverter(reader), pos);*/
 				}
 				// case "store": TODO
-			case "if": return readIf(reader, true);
-			case "unless": return readIf(reader, false);
+			case "if":
+				return readIf(reader, true);
+			case "unless":
+				return readIf(reader, false);
 			case "run":
 				return new Run(Parser.readFunction(reader));
 			default:
@@ -179,6 +182,12 @@ public class ExecuteCommand implements Command {
 	Converter readIf(Reader reader, boolean positive) throws ReaderException {
 		String type = reader.readLiteral();
 		switch (type) {
+			case "block":
+				PosArgument pos = ArgumentParser.readPos(reader);
+				reader.moveNext();
+				Predicate<CachedBlockPosition> predicate = ArgumentParser.readBlockPredicate(reader, true);
+				reader.moveNext();
+				return new IfBlock(readConverter(reader), pos, predicate, true);
 			case "entity":
 				Selector s = Selector.read(reader);
 				reader.moveNext();
@@ -464,6 +473,31 @@ public class ExecuteCommand implements Command {
 	
 	// store
 	
+	public class IfBlock extends Converter {
+		final Converter next;
+		final PosArgument pos;
+		final Predicate<CachedBlockPosition> predicate;
+		final boolean positive;
+		
+		public IfBlock(Converter next, PosArgument pos, Predicate<CachedBlockPosition> predicate, boolean positive) {
+			this.next = next;
+			this.pos = pos;
+			this.predicate = predicate;
+			this.positive = positive;
+		}
+		
+		@Override
+		int call() {
+			BlockPos blockPos = pos.toAbsoluteBlockPos(source());
+			if (!world.isChunkLoaded(blockPos))
+				return 0; // TODO should this throw?
+			CachedBlockPosition cachedBlock = new CachedBlockPosition(world, blockPos, true);
+			if(predicate.test(cachedBlock))
+				return next.call();
+			else
+				return 0;
+		}
+	}
 	
 	public class IfEntity extends Converter {
 		final Converter next;

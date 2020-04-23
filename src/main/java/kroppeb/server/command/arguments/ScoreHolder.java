@@ -20,7 +20,7 @@ public class ScoreHolder {
 				return new Entities(selector);
 			}
 		}else{
-			return new Named(reader.readUnquotedString());
+			return new Named(reader.readUntilWhitespace());
 		}
 	}
 	

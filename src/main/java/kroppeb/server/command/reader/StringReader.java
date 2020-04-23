@@ -145,7 +145,7 @@ public class StringReader implements Reader {
 	 */
 	@Override
 	public double readDouble() throws ReaderException {
-		return 0;
+		throw new ReaderException("readDouble is not implemented");
 	}
 	
 	/**
@@ -215,7 +215,7 @@ public class StringReader implements Reader {
 	}
 	
 	@Override
-	public int readInt() throws ReaderException {
+	public String readNumber() throws ReaderException {
 		char c = peek();
 		int start = index;
 		if(c == '-' || (c >= '0' && c <= '9')){
@@ -225,19 +225,10 @@ public class StringReader implements Reader {
 					break;
 				c = peek();
 			}while(c >= '0' && c <= '9');
-			try {
-				return Integer.parseInt(line.substring(start, index));
-			}catch (NumberFormatException e){
-				throw new ReaderException("invalid int: " + e.getMessage(), e);
-			}
+			return line.substring(start, index);
 		}
-		expected("an integer");
-		return 0; // UNREACHABLE CODE
-	}
-	
-	@Override
-	public EnumSet<Direction.Axis> readSwizzle() {
-		return null;
+		expected("a number");
+		return null; // UNREACHABLE CODE
 	}
 	
 	/**

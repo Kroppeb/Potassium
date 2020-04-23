@@ -24,7 +24,7 @@ public interface Reader {
 	boolean canRead();
 	
 	default boolean tryRead(char c) {
-		if (peek() == c) {
+		if (canRead() && peek() == c) {
 			skip();
 			return true;
 		}
@@ -48,24 +48,86 @@ public interface Reader {
 	/**
 	 * readUntilWhiteSpace and asserts that we are at the end or will skip ws
 	 */
-	default String readLiteral() throws ReaderException{
+	default String readLiteral() throws ReaderException {
 		String res = readUntilWhitespace();
-		if(canRead())
+		if (canRead())
 			moveNext();
 		return res;
 	}
 	
 	/**
 	 * reads until whitespace or EOL
+	 *
 	 * @throws ReaderException empty string
 	 */
 	String readUntilWhitespace() throws ReaderException;
 	
 	void readChar(char c) throws ReaderException;
 	
-	/**
-	 * converts ints to double by adding `0.5D`
-	 */
+	String readNumber() throws ReaderException;
+	
+	default int readInt() throws ReaderException {
+		try {
+			return Integer.parseInt(readNumber());
+		} catch (NumberFormatException e) {
+			throw new ReaderException("invalid int: " + e.getMessage(), e);
+		}
+	}
+	
+	default double readSimpleDouble() throws ReaderException {
+		if (tryRead('.')) {
+			String number = "." + readNumber();
+			try {
+				return Double.parseDouble(number);
+			} catch (NumberFormatException e) {
+				throw new ReaderException("Not a valid double: " + number);
+			}
+		} else {
+			String pre = readNumber();
+			if (tryRead('.')) {
+				String number = pre + "." + readNumber();
+				try {
+					return Double.parseDouble(number);
+				} catch (NumberFormatException e) {
+					throw new ReaderException("Not a valid double: " + number);
+				}
+			}else{
+				try {
+					return Double.parseDouble(pre);
+				} catch (NumberFormatException e) {
+					throw new ReaderException("Not a valid double: " + pre);
+				}
+			}
+		}
+	}
+	
+	default double readSimpleDoubleIntOffset() throws ReaderException {
+		if (tryRead('.')) {
+			String number = "." + readNumber();
+			try {
+				return Double.parseDouble(number);
+			} catch (NumberFormatException e) {
+				throw new ReaderException("Not a valid double: " + number);
+			}
+		} else {
+			String pre = readNumber();
+			if (tryRead('.')) {
+				String number = pre + "." + readNumber();
+				try {
+					return Double.parseDouble(number);
+				} catch (NumberFormatException e) {
+					throw new ReaderException("Not a valid double: " + number);
+				}
+			}else{
+				try {
+					return Double.parseDouble(pre) + .5D;
+				} catch (NumberFormatException e) {
+					throw new ReaderException("Not a valid double: " + pre);
+				}
+			}
+		}
+	}
+	
 	double readDouble() throws ReaderException;
 	
 	default boolean isQuotedStringStart() {
@@ -75,6 +137,7 @@ public interface Reader {
 	
 	/**
 	 * read quoted or unquoted string
+	 *
 	 * @return
 	 */
 	String readString() throws ReaderException;
@@ -85,7 +148,7 @@ public interface Reader {
 	
 	Identifier readIdentifier() throws ReaderException;
 	
-	default boolean isAllowedInUnquotedString(){
+	default boolean isAllowedInUnquotedString() {
 		return canRead() && isAllowedInUnquotedString(peek());
 	}
 	
@@ -115,11 +178,12 @@ public interface Reader {
 	
 	/**
 	 * Not pure, calls `moveNext` if possible
+	 *
 	 * @return true if there is data to read
 	 * @throws ReaderException if next char isn't whitespace
 	 */
 	default boolean hasNext() throws ReaderException {
-		if(canRead()) {
+		if (canRead()) {
 			moveNext();
 			return canRead();
 		}
@@ -127,6 +191,7 @@ public interface Reader {
 	}
 	
 	String readLine() throws ReaderException;
+	
 	void endLine() throws ReaderException;
 	
 	default boolean isWhiteSpace() {
@@ -136,19 +201,21 @@ public interface Reader {
 	
 	/**
 	 * move next if possible
+	 *
 	 * @throws ReaderException if the reader can't read;
 	 */
 	default void next() throws ReaderException {
-		if(isWhiteSpace())
+		if (isWhiteSpace())
 			moveNext();
 	}
 	
 	/**
 	 * move next if possible
+	 *
 	 * @return if there is new data to read.
 	 */
 	default boolean tryNext() {
-		if(isWhiteSpace()) {
+		if (isWhiteSpace()) {
 			try {
 				moveNext();
 			} catch (ReaderException e) {
@@ -157,10 +224,6 @@ public interface Reader {
 		}
 		return canRead();
 	}
-	
-	int readInt() throws ReaderException;
-	@Deprecated
-	EnumSet<Direction.Axis> readSwizzle();
 	
 	/**
 	 * tries to read given literal

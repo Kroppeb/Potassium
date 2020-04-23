@@ -7,13 +7,24 @@
 
 package kroppeb.server.command.arguments;
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import kroppeb.server.command.CommandLoader;
 import kroppeb.server.command.reader.Reader;
 import kroppeb.server.command.reader.ReaderException;
-import net.minecraft.command.arguments.CoordinateArgument;
-import net.minecraft.command.arguments.DefaultPosArgument;
-import net.minecraft.command.arguments.LookingPosArgument;
-import net.minecraft.command.arguments.PosArgument;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.pattern.CachedBlockPosition;
+import net.minecraft.command.arguments.*;
 import net.minecraft.nbt.*;
+import net.minecraft.server.command.ExecuteCommand;
+import net.minecraft.state.StateManager;
+import net.minecraft.state.property.Property;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.registry.Registry;
+
+import java.util.*;
+import java.util.function.Predicate;
 
 public class ArgumentParser {
 	
@@ -125,6 +136,7 @@ public class ArgumentParser {
 	
 	//endregion tag
 	//region pos
+	
 	public static PosArgument readPos(Reader reader) throws ReaderException {
 		if (reader.peek() == '^') {
 			double x = readLookingCoordinate(reader);
@@ -144,13 +156,158 @@ public class ArgumentParser {
 	}
 	
 	private static CoordinateArgument readCoordinateArgument(Reader reader) throws ReaderException {
-		return new CoordinateArgument(reader.tryRead('~'), reader.readDouble());
+		if(reader.tryRead('~')){
+			if(reader.canRead() && reader.peek() != ' ')
+				return new CoordinateArgument(true, reader.readSimpleDouble());
+			return new CoordinateArgument(true, 0.0D);
+		}else{
+			return new CoordinateArgument(false, reader.readSimpleDoubleIntOffset());
+		}
 	}
 	
 	private static double readLookingCoordinate(Reader reader) throws ReaderException {
 		reader.readChar('^');
-		return reader.readDouble();
+		if(reader.canRead() && reader.peek() != ' ')
+			return reader.readSimpleDouble();
+		return 0.0D;
+	}
+	
+	//endregion
+	//region block
+	static public Predicate<CachedBlockPosition> readBlockPredicate(Reader reader, boolean allowTags) throws ReaderException {
+		if (reader.tryRead('#')) {
+			if(!allowTags)
+				throw new ReaderException("Tags are not allowed here");
+			Identifier identifier = reader.readIdentifier();
+			net.minecraft.tag.Tag<Block> blockTag = CommandLoader.getBlockTag(identifier);
+			Map<String, String> properties = null;
+			if (reader.tryRead('[')) {
+				properties = readBlockTagProperties(reader);
+			}
+			CompoundTag nbtData = null;
+			if (reader.canRead() && reader.peek() == '{') {
+				nbtData = ArgumentParser.readCompoundTag(reader);
+			}
+			
+			return new BlockPredicateArgumentType.TagPredicate(blockTag, properties, nbtData);
+		} else {
+			Block block = readBlockId(reader);
+			BlockState state = block.getDefaultState();
+			Set<Property<?>> keys = null;
+			CompoundTag nbtData = null;
+			
+			if (reader.tryRead('[')) {
+				Map<Property<?>, Comparable<?>> properties = readBlockProperties(reader, block);
+				keys = properties.keySet();
+				for (Map.Entry<Property<?>, Comparable<?>> entry : properties.entrySet()) {
+					state = addProperty(state, entry);
+				}
+			}
+			
+			if (reader.canRead() && reader.peek() == '{') {
+				nbtData = ArgumentParser.readCompoundTag(reader);
+			}
+			
+			return new BlockPredicateArgumentType.StatePredicate(
+					state, keys, nbtData);
+		}
+	}
+	
+	// to get around java type system
+	private static <T extends Comparable<T>> BlockState addProperty(BlockState state, Map.Entry<Property<?>, Comparable<?>> entry) {
+		//noinspection unchecked
+		return state.with((Property<T>)entry.getKey(), (T)entry.getValue());
+	}
+	
+	
+	static public Block readBlockId(Reader reader) throws ReaderException {
+		Identifier id = reader.readIdentifier();
+		return Registry.BLOCK.getOrEmpty(id).orElseThrow(() -> new ReaderException("unknown block: " + id.toString()));
+	}
+	
+	
+	static public Map<Property<?>, Comparable<?>> readBlockProperties(Reader reader, Block block) throws ReaderException {
+		StateManager<Block, BlockState> stateFactory = block.getStateManager();
+		Map<Property<?>, Comparable<?>> properties = new HashMap<>();
+		while (true) {
+			String key = reader.readString();
+			Property<?> property = stateFactory.getProperty(key);
+			
+			if (property == null)
+				throw new ReaderException("Unknown property: " + key);
+			
+			if (properties.containsKey(property))
+				throw new ReaderException("Duplicate property: " + key);
+			
+			reader.next();
+			reader.readChar('=');
+			reader.next();
+			String valueString = reader.readString();
+			Optional<?> value = property.parse(valueString);
+			
+			if (value.isPresent()) {
+				properties.put(property, (Comparable<?>) value.get());
+			} else {
+				throw new ReaderException("Unknown value for property (" + key + "): " + valueString);
+			}
+			
+			
+			reader.next();
+			if (!reader.tryRead(','))
+				break;
+			reader.next();
+		}
+		reader.readChar(']');
+		return properties;
+	}
+	static public Map<String, String> readBlockTagProperties(Reader reader) throws ReaderException {
+		Map<String, String> properties = new HashMap<>();
+		while (true) {
+			String key = reader.readString();
+			
+			if (properties.containsKey(key))
+				throw new ReaderException("Duplicate property: " + key);
+			
+			reader.next();
+			reader.readChar('=');
+			reader.next();
+			String value = reader.readString();
+			
+			properties.put(key, value);
+			reader.next();
+			if (!reader.tryRead(','))
+				break;
+			reader.next();
+		}
+		reader.readChar(']');
+		return properties;
 	}
 	//endregion
-	
+	//region swizzle
+	static public EnumSet<Direction.Axis> readSwizzle(Reader reader) throws ReaderException {
+		String s = reader.readUntilWhitespace();
+		EnumSet<Direction.Axis> axes = EnumSet.noneOf(Direction.Axis.class);
+		
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+			Direction.Axis axis;
+			switch (c){
+				case 'x':
+					axis = Direction.Axis.X;
+					break;
+				case 'y':
+					axis = Direction.Axis.Y;
+					break;
+				case 'z':
+					axis = Direction.Axis.Z;
+					break;
+				default:
+					throw new ReaderException("Unknown axis: " + c);
+			}
+			if(!axes.add(axis))
+				throw new ReaderException("Duplicated axis: " + c);
+		}
+		return axes;
+	}
+	//endregion
 }
