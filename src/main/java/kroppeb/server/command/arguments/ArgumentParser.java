@@ -156,18 +156,18 @@ public class ArgumentParser {
 	}
 	
 	private static CoordinateArgument readCoordinateArgument(Reader reader) throws ReaderException {
-		if(reader.tryRead('~')){
-			if(reader.canRead() && reader.peek() != ' ')
+		if (reader.tryRead('~')) {
+			if (reader.canRead() && reader.peek() != ' ')
 				return new CoordinateArgument(true, reader.readSimpleDouble());
 			return new CoordinateArgument(true, 0.0D);
-		}else{
+		} else {
 			return new CoordinateArgument(false, reader.readSimpleDoubleIntOffset());
 		}
 	}
 	
 	private static double readLookingCoordinate(Reader reader) throws ReaderException {
 		reader.readChar('^');
-		if(reader.canRead() && reader.peek() != ' ')
+		if (reader.canRead() && reader.peek() != ' ')
 			return reader.readSimpleDouble();
 		return 0.0D;
 	}
@@ -176,7 +176,7 @@ public class ArgumentParser {
 	//region block
 	static public Predicate<CachedBlockPosition> readBlockPredicate(Reader reader, boolean allowTags) throws ReaderException {
 		if (reader.tryRead('#')) {
-			if(!allowTags)
+			if (!allowTags)
 				throw new ReaderException("Tags are not allowed here");
 			Identifier identifier = reader.readIdentifier();
 			net.minecraft.tag.Tag<Block> blockTag = CommandLoader.getBlockTag(identifier);
@@ -213,10 +213,31 @@ public class ArgumentParser {
 		}
 	}
 	
+	static public BlockStateArgument readBlock(Reader reader) throws ReaderException {
+		Block block = readBlockId(reader);
+		BlockState state = block.getDefaultState();
+		Set<Property<?>> keys = null;
+		CompoundTag nbtData = null;
+		
+		if (reader.tryRead('[')) {
+			Map<Property<?>, Comparable<?>> properties = readBlockProperties(reader, block);
+			keys = properties.keySet();
+			for (Map.Entry<Property<?>, Comparable<?>> entry : properties.entrySet()) {
+				state = addProperty(state, entry);
+			}
+		}
+		
+		if (reader.canRead() && reader.peek() == '{') {
+			nbtData = ArgumentParser.readCompoundTag(reader);
+		}
+		
+		return new BlockStateArgument(state, keys, nbtData);
+	}
+	
 	// to get around java type system
 	private static <T extends Comparable<T>> BlockState addProperty(BlockState state, Map.Entry<Property<?>, Comparable<?>> entry) {
 		//noinspection unchecked
-		return state.with((Property<T>)entry.getKey(), (T)entry.getValue());
+		return state.with((Property<T>) entry.getKey(), (T) entry.getValue());
 	}
 	
 	
@@ -260,6 +281,7 @@ public class ArgumentParser {
 		reader.readChar(']');
 		return properties;
 	}
+	
 	static public Map<String, String> readBlockTagProperties(Reader reader) throws ReaderException {
 		Map<String, String> properties = new HashMap<>();
 		while (true) {
@@ -282,6 +304,7 @@ public class ArgumentParser {
 		reader.readChar(']');
 		return properties;
 	}
+	
 	//endregion
 	//region swizzle
 	static public EnumSet<Direction.Axis> readSwizzle(Reader reader) throws ReaderException {
@@ -291,7 +314,7 @@ public class ArgumentParser {
 		for (int i = 0; i < s.length(); i++) {
 			char c = s.charAt(i);
 			Direction.Axis axis;
-			switch (c){
+			switch (c) {
 				case 'x':
 					axis = Direction.Axis.X;
 					break;
@@ -304,7 +327,7 @@ public class ArgumentParser {
 				default:
 					throw new ReaderException("Unknown axis: " + c);
 			}
-			if(!axes.add(axis))
+			if (!axes.add(axis))
 				throw new ReaderException("Duplicated axis: " + c);
 		}
 		return axes;

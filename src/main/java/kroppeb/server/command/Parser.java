@@ -8,6 +8,7 @@
 package kroppeb.server.command;
 
 
+import kroppeb.server.command.arguments.SetBlockCommand;
 import kroppeb.server.command.commands.*;
 import kroppeb.server.command.commands.ExecuteCommand;
 import kroppeb.server.command.reader.Reader;
@@ -33,6 +34,8 @@ public class Parser {
 				return FunctionCommand.read(reader);
 			case "scoreboard":
 				return ScoreboardCommand.read(reader);
+			case "setblock":
+				return SetBlockCommand.read(reader);
 			case "summon":
 				return SummonCommand.read(reader);
 			
