@@ -10,6 +10,7 @@ package kroppeb.server.command.arguments;
 import kroppeb.server.command.reader.Reader;
 import kroppeb.server.command.reader.ReaderException;
 import net.minecraft.entity.Entity;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 
@@ -36,6 +37,10 @@ public abstract class Selector {
 	}
 	
 	abstract public Collection<Entity> getEntities(ServerWorld world, Vec3d pos, Entity executor);
+	
+	public Collection<Entity> getEntities(ServerCommandSource source) {
+		return getEntities(source.getWorld(), source.getPosition(), source.getEntity());
+	}
 	
 	abstract public static class SingleSelector extends  Selector{
 		@Override

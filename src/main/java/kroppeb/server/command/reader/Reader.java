@@ -46,12 +46,16 @@ public interface Reader {
 	String readWord() throws ReaderException;
 	
 	/**
-	 * readUntilWhiteSpace and asserts that we are at the end or will skip ws
+	 * readUntilWhiteSpace and asserts that we are at the end or will skip ws and we are not at the end
 	 */
 	default String readLiteral() throws ReaderException {
 		String res = readUntilWhitespace();
-		if (canRead())
+		if (canRead()) {
 			moveNext();
+			if(!canRead()){
+				throw new ReaderException("trailing whitespace");
+			}
+		}
 		return res;
 	}
 	

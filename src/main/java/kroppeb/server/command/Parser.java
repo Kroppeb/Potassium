@@ -38,6 +38,8 @@ public class Parser {
 				return SetBlockCommand.read(reader);
 			case "summon":
 				return SummonCommand.read(reader);
+			case "tag":
+				return TagCommand.read(reader);
 			
 			default:
 				throw new ReaderException("Unknown command: " + command);
