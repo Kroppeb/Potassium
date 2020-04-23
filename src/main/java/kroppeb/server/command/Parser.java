@@ -32,6 +32,8 @@ public class Parser {
 				return ExecuteCommand.read(reader);
 			case "function":
 				return FunctionCommand.read(reader);
+			case "kill":
+				return KillCommand.read(reader);
 			case "scoreboard":
 				return ScoreboardCommand.read(reader);
 			case "setblock":
