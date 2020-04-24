@@ -241,7 +241,16 @@ public class StringReader implements Reader {
 	public boolean tryReadLiteral(String literal) {
 		if(line.regionMatches(index,literal,0,literal.length())){
 			skip(literal.length());
-			tryNext();
+			tryNext(); // TODO this feels incorrect
+			return true;
+		}
+		return false;
+	}
+	
+	@Override
+	public boolean tryRead(String s) {
+		if(line.regionMatches(index,s,0,s.length())) {
+			skip(s.length());
 			return true;
 		}
 		return false;

@@ -233,4 +233,6 @@ public interface Reader {
 	 * tries to read given literal
 	 */
 	boolean tryReadLiteral(String literal);
+	
+	boolean tryRead(String s);
 }
