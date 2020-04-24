@@ -7,8 +7,15 @@
 
 package kroppeb.server.command;
 
+import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.server.command.ServerCommandSource;
 
-public interface Command {
-	public abstract int execute(ServerCommandSource source);
+public interface Command extends com.mojang.brigadier.Command<ServerCommandSource> {
+	
+	@Override
+	default int run(CommandContext<ServerCommandSource> context){
+		return execute(context.getSource());
+	}
+	
+	int execute(ServerCommandSource source);
 }
