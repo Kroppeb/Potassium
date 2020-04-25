@@ -39,7 +39,6 @@ abstract public class GiveCommand implements Command {
 		Identifier item = Registry.ITEM.get(reader.readIdentifier());
 		CompoundTag nbt;
 		int count = 1;
-		boolean hideParticles = false;
 		if (reader.hasNext()) {
 			// nbt = ???;
 			// TODO: Process NBT tags
@@ -54,15 +53,27 @@ abstract public class GiveCommand implements Command {
 	public int execute(ServerCommandSource source) {
 		int e = 0;
 		
-		ItemStack stack = ItemStack(item, stackSize);
-		// TODO: throw error for 'illegal' item (not found / more than max count)
+		int stackMax = item.getMaxCount();
+		int stackCount = count / stackMax;
+		ItemStack stack = ItemStack(item, stackMax);
+		// TODO: throw error for 'illegal' item (not found)
 		
 		Collection<Entity> entities = targets.getEntities(source);
 		for (Entity entity : entities) {
 			if (entity instanceof PlayerEntity) {
 				player = (PlayerEntity) entity;
-				player.inventory.insertStack(stack);
-				// TODO: drop item on full player inventory
+				for (int i = 0; i < stackCount + 1; i++) {
+					if (i == stackCount) {
+						stack.setCount(count % stackMax);
+					}
+					ItemEntity itemEntity = player.dropItem(stack, false);
+					if (itemEntity != null) {
+						itemEntity.setOwner(player);
+						itemEntity.resetPickupDelay();
+					} else {
+						i--;
+					}
+				}
 				e++;
 			}
 		}
