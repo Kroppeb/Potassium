@@ -7,7 +7,11 @@
 
 package kroppeb.server.command.arguments;
 
+import com.google.common.collect.Lists;
+import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import kroppeb.server.command.CommandLoader;
 import kroppeb.server.command.reader.Reader;
 import kroppeb.server.command.reader.ReaderException;
@@ -15,11 +19,13 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.pattern.CachedBlockPosition;
 import net.minecraft.command.arguments.*;
+import net.minecraft.command.arguments.NbtPathArgumentType.NbtPath;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ClearCommand;
+import net.minecraft.server.command.DataCommand;
 import net.minecraft.server.command.ExecuteCommand;
 import net.minecraft.server.command.GiveCommand;
 import net.minecraft.state.StateManager;
@@ -30,6 +36,8 @@ import net.minecraft.util.registry.Registry;
 
 import java.util.*;
 import java.util.function.Predicate;
+
+import static net.minecraft.command.arguments.NbtPathArgumentType.INVALID_PATH_NODE_EXCEPTION;
 
 public class ArgumentParser {
 	
@@ -379,5 +387,73 @@ public class ArgumentParser {
 		return Registry.ITEM.getOrEmpty(id).orElseThrow(() -> new ReaderException("unknown block: " + id.toString()));
 	}
 	
+	public static NbtPath readPath(Reader reader) throws ReaderException {
+		List<NbtPathArgumentType.PathNode> list = Lists.newArrayList();
+		boolean bl = true;
+		
+		while (!reader.isWhiteSpace()) {
+			NbtPathArgumentType.PathNode pathNode = parseNode(reader, bl);
+			list.add(pathNode);
+			bl = false;
+			if (reader.canRead()) {
+				char c = reader.peek();
+				if (c != ' ' && c != '[' && c != '{') {
+					reader.readChar('.');
+				}
+			} else {
+				break;
+			}
+		}
+		
+		return new NbtPathArgumentType.NbtPath("not available",
+				list.toArray(new NbtPathArgumentType.PathNode[0]),
+				null); // TODO: will cause NPE on error instead of CommandError
+	}
+	
+	private static NbtPathArgumentType.PathNode parseNode(Reader reader, boolean root) throws ReaderException {
+		String string;
+		switch(reader.peek()) {
+			case '"':
+				string = reader.readQuotedString();
+				return readCompoundChildNode(reader, string);
+			case '[':
+				reader.skip();
+				char i = reader.peek();
+				switch (i) {
+					case '{':
+						CompoundTag tag = readCompoundTag(reader);
+						reader.readChar(']');
+						return new NbtPathArgumentType.FilteredListElementNode(tag);
+					case ']':
+						reader.skip();
+						return NbtPathArgumentType.AllListElementNode.INSTANCE;
+					default:
+						int j = reader.readInt();
+						reader.readChar(']');
+						return new NbtPathArgumentType.IndexedListElementNode(j);
+				}
+			case '{':
+				if (!root) {
+					throw new ReaderException("invalid nbt path");
+				}
+				
+				CompoundTag tag = readCompoundTag(reader);
+				return new NbtPathArgumentType.FilteredRootNode(tag);
+			default:
+				string = reader.readNamedPath();
+				return readCompoundChildNode(reader, string);
+		}
+	}
+	
+	private static NbtPathArgumentType.PathNode readCompoundChildNode(Reader reader, String name) throws ReaderException {
+		if (reader.canRead() && reader.peek() == '{') {
+			CompoundTag compoundTag = readCompoundTag(reader);
+			return new NbtPathArgumentType.FilteredNamedNode(name, compoundTag);
+		} else {
+			return new NbtPathArgumentType.NamedNode(name);
+		}
+	}
+	
 	//endregion
+	
 }

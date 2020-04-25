@@ -29,6 +29,9 @@ public class Parser {
 		switch (command) {/*
 			case "advancement":
 				return Advancement.read(reader);*/
+			case "data":
+				result = DataCommand.read(reader);
+				break;
 			case "execute":
 				result = ExecuteCommand.read(reader);
 				break;

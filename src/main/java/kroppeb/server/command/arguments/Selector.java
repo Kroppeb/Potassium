@@ -233,8 +233,6 @@ public interface Selector {
 			this.value = value;
 		}
 	}
-	
-	
 	Collection<? extends Entity> getEntities(ServerWorld world, Vec3d pos, Entity executor);
 	
 	default Collection<? extends Entity> getEntities(ServerCommandSource source) {
@@ -250,7 +248,17 @@ public interface Selector {
 			return Collections.singleton(entity);
 		}
 		
+		static SingleSelector read(Reader reader) throws ReaderException{
+			Selector selector = Selector.read(reader);
+			if(selector instanceof SingleSelector)
+				return (SingleSelector) selector;
+			throw new ReaderException("not limited to 1 entity"); // TODO check limit value why
+		}
+		
 		Entity getEntity(ServerWorld world, Vec3d pos, Entity executor);
+		default Entity getEntity(ServerCommandSource source){
+			return getEntity(source.getWorld(), source.getPosition(), source.getEntity());
+		}
 	}
 	
 	interface PlayerSelector extends Selector {
@@ -260,6 +268,9 @@ public interface Selector {
 		}
 		
 		Collection<? extends PlayerEntity> getPlayers(ServerWorld world, Vec3d pos, Entity executor);
+		default Collection<? extends PlayerEntity> getPlayers(ServerCommandSource source){
+			return getPlayers(source.getWorld(), source.getPosition(), source.getEntity());
+		}
 	}
 	
 	interface SinglePlayerSelector extends SingleSelector, PlayerSelector {
@@ -281,13 +292,19 @@ public interface Selector {
 			return Collections.singleton(entity);
 		}
 		
+
 		PlayerEntity getPlayer(ServerWorld world, Vec3d pos, Entity executor);
+		
+		default public PlayerEntity getPlayer(ServerCommandSource source){
+			return getPlayer(source.getWorld(), source.getPosition(), source.getEntity());
+		}
 	}
 	
 	Self SELF = new Self();
 	Players ALL_PLAYERS = new Players();
 	Entities ALL_ENTITIES = new Entities();
 	SingleRandomPlayer RANDOM_PLAYER = new SingleRandomPlayer();
+	SingleClosestPlayer CLOSEST_PLAYER = new SingleClosestPlayer();
 	
 	class Self implements SinglePlayerSelector {
 		
