@@ -10,16 +10,18 @@ package kroppeb.server.command.arguments;
 import kroppeb.server.command.reader.Reader;
 import kroppeb.server.command.reader.ReaderException;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.*;
 
-public abstract class Selector {
-	public static Selector read(Reader reader) throws ReaderException {
+public interface Selector {
+	static Selector read(Reader reader) throws ReaderException {
 		reader.readChar('@');
 		switch (reader.read()) {
 			case 's':
@@ -37,7 +39,7 @@ public abstract class Selector {
 		}
 	}
 	
-	private static SelectorBuilder readBuilder(Reader reader) throws ReaderException {
+	static SelectorBuilder readBuilder(Reader reader) throws ReaderException {
 		SelectorBuilder sb = new SelectorBuilder();
 		while (!reader.tryRead(']')) {
 			String option = reader.readUnquotedString();
@@ -93,95 +95,95 @@ public abstract class Selector {
 					sb.setLevel(IntRange.read(reader));
 					break;
 				case "gamemode":
-					if(sb.gamemode == null)
+					if (sb.gamemode == null)
 						sb.gamemode = new Group<>();
 					
-					if(reader.tryRead('!')){
+					if (reader.tryRead('!')) {
 						reader.next();
 						sb.gamemode.negative.add(reader.readUnquotedString());
-					}else{
+					} else {
 						sb.gamemode.positive.add(reader.readUnquotedString());
 					}
 					
 					break;
 				case "name":
-					if(sb.name == null)
+					if (sb.name == null)
 						sb.name = new Group<>();
 					
-					if(reader.tryRead('!')){
+					if (reader.tryRead('!')) {
 						reader.next();
 						sb.name.negative.add(reader.readUnquotedString());
-					}else{
+					} else {
 						sb.name.positive.add(reader.readUnquotedString());
 					}
 					
 					break;
 				case "team":
-					if(sb.team == null)
+					if (sb.team == null)
 						sb.team = new Group<>();
 					
-					if(reader.tryRead('!')){
+					if (reader.tryRead('!')) {
 						reader.next();
 						sb.team.negative.add(reader.readUnquotedString());
-					}else{
+					} else {
 						sb.team.positive.add(reader.readUnquotedString());
 					}
 					
 					break;
 				case "type":
-					if(sb.type == null)
+					if (sb.type == null)
 						sb.type = new Group<>();
 					
-					if(reader.tryRead('!')){
+					if (reader.tryRead('!')) {
 						reader.next();
-						if(reader.tryRead('#')) {
+						if (reader.tryRead('#')) {
 							reader.next();
 							sb.type.negative.add(new Tagable<>(true, reader.readIdentifier()));
-						}else{
+						} else {
 							sb.type.negative.add(new Tagable<>(false, reader.readIdentifier()));
 						}
-					}else{
-						if(reader.tryRead('#')) {
+					} else {
+						if (reader.tryRead('#')) {
 							reader.next();
 							sb.type.positive.add(new Tagable<>(true, reader.readIdentifier()));
-						}else{
+						} else {
 							sb.type.positive.add(new Tagable<>(false, reader.readIdentifier()));
 						}
 					}
 					
 					break;
 				case "tag":
-					if(sb.tag == null)
+					if (sb.tag == null)
 						sb.tag = new Group<>();
 					
-					if(reader.tryRead('!')){
+					if (reader.tryRead('!')) {
 						reader.next();
 						sb.tag.negative.add(reader.readUnquotedString());
-					}else{
+					} else {
 						sb.tag.positive.add(reader.readUnquotedString());
 					}
 					
 					break;
 				case "nbt":
-					if(sb.nbt == null)
+					if (sb.nbt == null)
 						sb.nbt = new Group<>();
 					
-					if(reader.tryRead('!')){
+					if (reader.tryRead('!')) {
 						reader.next();
 						sb.nbt.negative.add(ArgumentParser.readCompoundTag(reader));
-					}else{
+					} else {
 						sb.nbt.positive.add(ArgumentParser.readCompoundTag(reader));
 					}
 					
 					break;
 				case "predicate":
-					if(sb.predicate == null)
+					if (sb.predicate == null)
 						sb.predicate = new Group<>();
 					
-					if(reader.tryRead('!')){
+					if (reader.tryRead('!')) {
 						reader.next();
 						sb.predicate.negative.add(reader.readIdentifier());
-					}else{
+					} else {
 						sb.predicate.positive.add(reader.readIdentifier());
 					}
 					
@@ -217,12 +219,12 @@ public abstract class Selector {
 	}
 	
 	
-	public static class Group<T> { // TODO some of these can be parsed away from string sooner
+	class Group<T> { // TODO some of these can be parsed away from string sooner
 		final Set<T> positive = new HashSet<>();
 		final Set<T> negative = new HashSet<>();
 	}
 	
-	public static class Tagable<T> {
+	class Tagable<T> {
 		final boolean isTag;
 		final T value;
 		
@@ -233,43 +235,140 @@ public abstract class Selector {
 	}
 	
 	
-	abstract public Collection<Entity> getEntities(ServerWorld world, Vec3d pos, Entity executor);
+	Collection<? extends Entity> getEntities(ServerWorld world, Vec3d pos, Entity executor);
 	
-	public Collection<Entity> getEntities(ServerCommandSource source) {
+	default Collection<? extends Entity> getEntities(ServerCommandSource source) {
 		return getEntities(source.getWorld(), source.getPosition(), source.getEntity());
 	}
 	
-	abstract public static class SingleSelector extends Selector {
+	interface SingleSelector extends Selector {
 		@Override
-		public Collection<Entity> getEntities(ServerWorld world, Vec3d pos, Entity executor) {
-			return Collections.singleton(getEntity(world, pos, executor));
+		default Collection<? extends Entity> getEntities(ServerWorld world, Vec3d pos, Entity executor) {
+			Entity entity = getEntity(world, pos, executor);
+			if (entity == null)
+				return Collections.EMPTY_LIST;
+			return Collections.singleton(entity);
 		}
 		
-		public abstract Entity getEntity(ServerWorld world, Vec3d pos, Entity executor);
+		Entity getEntity(ServerWorld world, Vec3d pos, Entity executor);
 	}
 	
-	static Self SELF = new Self();
+	interface PlayerSelector extends Selector {
+		@Override
+		default Collection<? extends Entity> getEntities(ServerWorld world, Vec3d pos, Entity executor) {
+			return getPlayers(world, pos, executor);
+		}
+		
+		Collection<? extends PlayerEntity> getPlayers(ServerWorld world, Vec3d pos, Entity executor);
+	}
 	
-	static class Self extends SingleSelector {
+	interface SinglePlayerSelector extends SingleSelector, PlayerSelector {
+		@Override
+		default Collection<? extends Entity> getEntities(ServerWorld world, Vec3d pos, Entity executor) {
+			return getPlayers(world, pos, executor);
+		}
+		
+		@Override
+		default Entity getEntity(ServerWorld world, Vec3d pos, Entity executor) {
+			return getPlayer(world, pos, executor);
+		}
+		
+		@Override
+		default Collection<? extends PlayerEntity> getPlayers(ServerWorld world, Vec3d pos, Entity executor) {
+			PlayerEntity entity = getPlayer(world, pos, executor);
+			if (entity == null)
+				return Collections.EMPTY_LIST;
+			return Collections.singleton(entity);
+		}
+		
+		PlayerEntity getPlayer(ServerWorld world, Vec3d pos, Entity executor);
+	}
+	
+	Self SELF = new Self();
+	Players ALL_PLAYERS = new Players();
+	Entities ALL_ENTITIES = new Entities();
+	SingleRandomPlayer RANDOM_PLAYER = new SingleRandomPlayer();
+	
+	class Self implements SinglePlayerSelector {
 		
 		private Self() {
 		}
 		
 		@Override
-		public Entity getEntity(ServerWorld world, Vec3d pos, Entity executor) {
-			return executor;
-		}
-	}
-	
-	static class SelfFiltered extends SingleSelector {
-		
-		@Override
-		public Entity getEntity(ServerWorld world, Vec3d pos, Entity executor) {
+		public PlayerEntity getPlayer(ServerWorld world, Vec3d pos, Entity executor) {
+			if (executor instanceof PlayerEntity)
+				return (PlayerEntity) executor;
 			return null;
 		}
 	}
 	
-	static class Complex extends Selector {
+	class SelfFiltered implements SinglePlayerSelector {
+		
+		@Override
+		public PlayerEntity getPlayer(ServerWorld world, Vec3d pos, Entity executor) {
+			return null; // TODO implement
+		}
+	}
+	
+	class SinglePlayer implements SinglePlayerSelector {
+		@Override
+		public PlayerEntity getPlayer(ServerWorld world, Vec3d pos, Entity executor) {
+			return null;
+			// TODO implement
+		}
+	}
+	
+	class SingleClosestPlayer implements SinglePlayerSelector {
+		@Override
+		public PlayerEntity getPlayer(ServerWorld world, Vec3d pos, Entity executor) {
+			PlayerEntity player = null;
+			double distance = Double.NEGATIVE_INFINITY;
+			
+			for (ServerPlayerEntity worldPlayer : world.getPlayers()) {
+				double d = worldPlayer.squaredDistanceTo(pos);
+				if (d < distance) {
+					player = worldPlayer;
+					distance = d;
+				}
+				
+			}
+			return player;
+		}
+	}
+	
+	class SingleRandomPlayer implements SinglePlayerSelector {
+		@Override
+		public PlayerEntity getPlayer(ServerWorld world, Vec3d pos, Entity executor) {
+			return world.getRandomAlivePlayer();
+		}
+	}
+	
+	class Players implements PlayerSelector {
+		@Override
+		public Collection<? extends PlayerEntity> getPlayers(ServerWorld world, Vec3d pos, Entity executor) {
+			return world.getPlayers();
+		}
+	}
+	
+	class PlayersFiltred implements PlayerSelector {
+		
+		@Override
+		public Collection<? extends PlayerEntity> getPlayers(ServerWorld world, Vec3d pos, Entity executor) {
+			return null;
+			// TODO implement
+		}
+	}
+	
+	
+	class Entities implements Selector {
+		@Override
+		public Collection<? extends Entity> getEntities(ServerWorld world, Vec3d pos, Entity executor) {
+			return null;
+			// TODO implement
+		}
+	}
+	
+	class Complex implements Selector {
 		
 		@Override
 		public Collection<Entity> getEntities(ServerWorld world, Vec3d pos, Entity executor) {
