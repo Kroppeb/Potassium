@@ -15,8 +15,13 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.pattern.CachedBlockPosition;
 import net.minecraft.command.arguments.*;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.ClearCommand;
 import net.minecraft.server.command.ExecuteCommand;
+import net.minecraft.server.command.GiveCommand;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.Identifier;
@@ -332,5 +337,47 @@ public class ArgumentParser {
 		}
 		return axes;
 	}
+	
+	//endregion
+	//region item
+	public static Predicate<ItemStack> readItemPredicate(Reader reader, boolean allowTags) throws ReaderException {
+		if (reader.tryRead('#')) {
+			if (!allowTags)
+				throw new ReaderException("Tags are not allowed here");
+			Identifier identifier = reader.readIdentifier();
+			net.minecraft.tag.Tag<Item> itemTag = CommandLoader.getItemTag(identifier);
+			
+			CompoundTag nbtData = null;
+			if (reader.canRead() && reader.peek() == '{') {
+				nbtData = ArgumentParser.readCompoundTag(reader);
+			}
+			
+			return new ItemPredicateArgumentType.TagPredicate(itemTag, nbtData);
+		} else {
+			Item item = readItemId(reader);
+			CompoundTag nbtData = null;
+			
+			if (reader.canRead() && reader.peek() == '{') {
+				nbtData = ArgumentParser.readCompoundTag(reader);
+			}
+			
+			return new ItemPredicateArgumentType.ItemPredicate(item, nbtData);
+		}
+		
+	}
+	
+	public static ItemStack readItemStack(Reader reader) throws ReaderException {
+		ItemStack item = new ItemStack(readItemId(reader));
+		if (reader.canRead() && reader.peek() == '{') {
+			item.setTag(ArgumentParser.readCompoundTag(reader));
+		}
+		return item;
+	}
+	
+	static public Item readItemId(Reader reader) throws ReaderException {
+		Identifier id = reader.readIdentifier();
+		return Registry.ITEM.getOrEmpty(id).orElseThrow(() -> new ReaderException("unknown block: " + id.toString()));
+	}
+	
 	//endregion
 }
