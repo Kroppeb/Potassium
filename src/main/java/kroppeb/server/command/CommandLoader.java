@@ -9,6 +9,7 @@ package kroppeb.server.command;
 
 import kroppeb.server.command.commands.FunctionCommand;
 import net.minecraft.block.Block;
+import net.minecraft.item.Item;
 import net.minecraft.tag.Tag;
 import net.minecraft.util.Identifier;
 
@@ -39,6 +40,10 @@ public class CommandLoader {
 	}
 	
 	public static Tag<Block> getBlockTag(Identifier identifier) {
+		return null;
+	}
+	
+	public static Tag<Item> getItemTag(Identifier identifier) {
 		return null;
 	}
 }

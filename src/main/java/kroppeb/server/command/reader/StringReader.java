@@ -8,12 +8,7 @@
 package kroppeb.server.command.reader;
 
 
-import net.minecraft.command.arguments.PosArgument;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Direction;
-
-import java.io.*;
-import java.util.EnumSet;
 
 public class StringReader implements Reader {
 	String line;
@@ -195,6 +190,18 @@ public class StringReader implements Reader {
 		if (id == null)
 			throw new ReaderException("Couldn't parse " + str + " as an identifier");
 		return id;
+	}
+	
+	@Override
+	public String readNamedPath() throws ReaderException {
+		if (!isAllowedInNamedPath())
+			expected("identifier");
+		int pos = index;
+		
+		do skip();
+		while (isAllowedInNamedPath());
+		
+		return line.substring(pos, index);
 	}
 	
 	@Override

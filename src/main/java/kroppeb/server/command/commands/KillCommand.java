@@ -29,7 +29,7 @@ public class KillCommand implements Command {
 	
 	@Override
 	public int execute(ServerCommandSource source) {
-		Collection<Entity> entities = targets.getEntities(source);
+		Collection<? extends Entity> entities = targets.getEntities(source);
 		for (Entity entity : entities) {
 			entity.kill();
 		}

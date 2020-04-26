@@ -22,4 +22,16 @@ accessible	field	net/minecraft/command/arguments/EntityAnchorArgumentType$Entity
 accessible	class	net/minecraft/command/arguments/BlockPredicateArgumentType$TagPredicate
 accessible	method	net/minecraft/command/arguments/BlockPredicateArgumentType$TagPredicate	<init>	(Lnet/minecraft/tag/Tag;Ljava/util/Map;Lnet/minecraft/nbt/CompoundTag;)V
 accessible	class	net/minecraft/command/arguments/BlockPredicateArgumentType$StatePredicate
-# init is already public
+accessible	class	net/minecraft/command/arguments/ItemPredicateArgumentType$TagPredicate
+accessible	class	net/minecraft/command/arguments/ItemPredicateArgumentType$ItemPredicate
+# init is already public for last 3
+
+accessible	method	net/minecraft/server/command/DataCommand	executeInsert	(ILnet/minecraft/nbt/CompoundTag;Lnet/minecraft/command/arguments/NbtPathArgumentType$NbtPath;Ljava/util/List;)I
+
+accessible	class	net/minecraft/command/arguments/NbtPathArgumentType$PathNode
+accessible	class	net/minecraft/command/arguments/NbtPathArgumentType$FilteredRootNode
+accessible	class	net/minecraft/command/arguments/NbtPathArgumentType$FilteredNamedNode
+accessible	class	net/minecraft/command/arguments/NbtPathArgumentType$AllListElementNode
+accessible	class	net/minecraft/command/arguments/NbtPathArgumentType$FilteredListElementNode
+accessible	class	net/minecraft/command/arguments/NbtPathArgumentType$IndexedListElementNode
+accessible	class	net/minecraft/command/arguments/NbtPathArgumentType$NamedNode

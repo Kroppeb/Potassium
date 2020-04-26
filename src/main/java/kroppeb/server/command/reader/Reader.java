@@ -9,9 +9,6 @@ package kroppeb.server.command.reader;
 
 
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Direction;
-
-import java.util.EnumSet;
 
 
 public interface Reader {
@@ -223,7 +220,8 @@ public interface Reader {
 			try {
 				moveNext();
 			} catch (ReaderException e) {
-				return false; // should not happen i think
+				throw new RuntimeException("uh oh");
+				// return false; // should not happen i think
 			}
 		}
 		return canRead();
@@ -235,4 +233,16 @@ public interface Reader {
 	boolean tryReadLiteral(String literal);
 	
 	boolean tryRead(String s);
+	
+	String readNamedPath() throws ReaderException;
+	
+	@SuppressWarnings("DeprecatedIsStillUsed")
+	@Deprecated
+	static boolean isAllowedInNamedPath(char c) {
+		return c != ' ' && c != '"' && c != '[' && c != ']' && c != '.' && c != '{' && c != '}';
+	}
+	
+	default boolean isAllowedInNamedPath(){
+		return canRead() && Reader.isAllowedInNamedPath(peek());
+	}
 }
