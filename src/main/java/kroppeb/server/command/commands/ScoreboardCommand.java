@@ -8,6 +8,7 @@
 package kroppeb.server.command.commands;
 
 import kroppeb.server.command.Command;
+import kroppeb.server.command.InvocationError;
 import kroppeb.server.command.arguments.Score;
 import kroppeb.server.command.reader.Reader;
 import kroppeb.server.command.reader.ReaderException;
@@ -68,6 +69,7 @@ abstract public class ScoreboardCommand implements Command {
 				return new PlayerCommand.Reset(score);
 			case "operation":
 				return PlayerCommand.Operation.read(reader);
+				// TODO enable
 			default:
 				throw new ReaderException("Unexpected scoreboard players literal: " + sub);
 		}
@@ -87,9 +89,8 @@ abstract public class ScoreboardCommand implements Command {
 			}
 			
 			@Override
-			public int execute(ServerCommandSource source) {
-				score.addValue(source.getWorld(), source.getPosition(), source.getEntity(), value);
-				return 1; // TODO entities affected
+			public int execute(ServerCommandSource source) throws InvocationError {
+				return score.addValue(source.getWorld(), source.getPosition(), source.getEntity(), value);
 			}
 		}
 		
@@ -103,9 +104,8 @@ abstract public class ScoreboardCommand implements Command {
 			}
 			
 			@Override
-			public int execute(ServerCommandSource source) {
-				score.setValue(source.getWorld(), source.getPosition(), source.getEntity(), value);
-				return 1; // TODO entities affected
+			public int execute(ServerCommandSource source) throws InvocationError {
+				return score.setValue(source.getWorld(), source.getPosition(), source.getEntity(), value);
 			}
 		}
 		
@@ -117,9 +117,8 @@ abstract public class ScoreboardCommand implements Command {
 			}
 			
 			@Override
-			public int execute(ServerCommandSource source) {
-				score.resetValue(source.getWorld(), source.getPosition(), source.getEntity());
-				return 1; // TODO idk
+			public int execute(ServerCommandSource source) throws InvocationError {
+				return score.resetValue(source.getWorld(), source.getPosition(), source.getEntity());
 			}
 		}
 		
@@ -159,14 +158,16 @@ abstract public class ScoreboardCommand implements Command {
 			
 			@Override
 			public int execute(ServerCommandSource source) {
+				if(true)
+					throw new RuntimeException("This needs fixing"); // TODO
 				int r = 0;
 				Collection<ScoreboardPlayerScore> targets = this.target.getAll();
 				Collection<ScoreboardPlayerScore> sources = this.source.getAll();
 				for (ScoreboardPlayerScore t : targets) {
 					for (ScoreboardPlayerScore s : sources) {
 						this.op.apply(t,s);
+						r += t.getScore();
 					}
-					r += t.getScore();
 				}
 				return r;
 			}

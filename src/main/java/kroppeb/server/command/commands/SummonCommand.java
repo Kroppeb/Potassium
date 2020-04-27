@@ -35,7 +35,7 @@ public abstract class SummonCommand implements Command {
 		}
 		
 		@Override
-		public int execute(ServerCommandSource source) {
+		public int execute(ServerCommandSource source) throws InvocationError {
 			ServerWorld world = source.getWorld();
 			Vec3d pos = this.pos.toAbsolutePos(source);
 			if (!World.method_25953(new BlockPos(pos))) throw new IllegalArgumentException(); // TODO better errors
@@ -44,7 +44,7 @@ public abstract class SummonCommand implements Command {
 				return world.tryLoadEntity(entityx) ? entityx : null;
 			});
 			if (entity2 == null) {
-				throw new RuntimeException();//FAILED_EXCEPTION.create();
+				throw new InvocationError();
 			} else {
 				if (initialize && entity2 instanceof MobEntity) {
 					((MobEntity) entity2).initialize(world, world.getLocalDifficulty(entity2
@@ -63,10 +63,11 @@ public abstract class SummonCommand implements Command {
 		}
 		
 		@Override
-		public int execute(ServerCommandSource source) {
+		public int execute(ServerCommandSource source) throws InvocationError {
 			ServerWorld world = source.getWorld();
 			Vec3d pos = this.pos.toAbsolutePos(source);
-			if (!World.method_25953(new BlockPos(pos))) throw new IllegalArgumentException(); // TODO better errors
+			if (!World.method_25953(new BlockPos(pos)))
+				throw new InvocationError();
 			LightningEntity lightningEntity = new LightningEntity(world, pos.x, pos.y, pos.z, false);
 			world.addLightning(lightningEntity);
 			return 1;

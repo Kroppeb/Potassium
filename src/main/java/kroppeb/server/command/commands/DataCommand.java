@@ -10,12 +10,12 @@ package kroppeb.server.command.commands;
 import com.google.common.collect.Iterables;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import kroppeb.server.command.Command;
+import kroppeb.server.command.InvocationError;
 import kroppeb.server.command.arguments.ArgumentParser;
 import kroppeb.server.command.arguments.NbtDataContainer;
 import kroppeb.server.command.arguments.NbtDataSource;
 import kroppeb.server.command.reader.Reader;
 import kroppeb.server.command.reader.ReaderException;
-import net.minecraft.command.arguments.NbtPathArgumentType;
 import net.minecraft.command.arguments.NbtPathArgumentType.NbtPath;
 import net.minecraft.nbt.*;
 import net.minecraft.server.command.ServerCommandSource;
@@ -92,7 +92,7 @@ abstract public class DataCommand implements Command {
 		
 		
 		@Override
-		public int execute(ServerCommandSource source) {
+		public int execute(ServerCommandSource source) throws InvocationError {
 			if (dataSource.path == null) {
 				target.getTag(source);
 				return 1;
@@ -110,7 +110,7 @@ abstract public class DataCommand implements Command {
 					m = ((CompoundTag) tag).getSize();
 				} else {
 					if (!(tag instanceof StringTag)) {
-						throw new RuntimeException("Nope "); // TODO better error;
+						throw new InvocationError();
 					}
 					
 					m = tag.asString().length();
@@ -120,7 +120,7 @@ abstract public class DataCommand implements Command {
 				if (tag instanceof AbstractNumberTag) {
 					return MathHelper.floor(((AbstractNumberTag) tag).getDouble() * scale);
 				}
-				throw new RuntimeException(); // TODO Add error
+				throw new InvocationError();
 			}
 		}
 	}
@@ -135,11 +135,11 @@ abstract public class DataCommand implements Command {
 		
 		
 		@Override
-		public int execute(ServerCommandSource source) {
+		public int execute(ServerCommandSource source) throws InvocationError {
 			CompoundTag data = target.getTag(source);
 			CompoundTag result = data.copy().copyFrom(tag);
 			if (data.equals(result)) {
-				throw new RuntimeException(); // TODO add error?
+				throw new InvocationError();
 			}
 			target.setTag(source, result);
 			return 1;
@@ -157,12 +157,12 @@ abstract public class DataCommand implements Command {
 		
 		
 		@Override
-		public int execute(ServerCommandSource source) {
+		public int execute(ServerCommandSource source) throws InvocationError {
 			CompoundTag data = target.getTag(source);
 			int i = path.remove(data);
 			
 			if (i == 0) {
-				throw new RuntimeException(); // TODO add error?
+				throw new InvocationError();
 			}
 			target.setTag(source, data);
 			return i;
@@ -179,17 +179,17 @@ abstract public class DataCommand implements Command {
 			this.source = source;
 		}
 		
-		static int insert(int integer, CompoundTag sourceTag, NbtPathArgumentType.NbtPath path, List<Tag> tags) {
+		static int insert(int integer, CompoundTag sourceTag, NbtPath path, List<Tag> tags) throws InvocationError {
 			// I was too lazy to copy
 			try {
 				int i = net.minecraft.server.command.DataCommand.executeInsert(integer, sourceTag, path, tags);
 				if (i == 0) {
-					// TODO I'm assuming an error
+					throw new InvocationError();
 				}
 				return i;
 				
 			} catch (CommandSyntaxException e) {
-				throw new RuntimeException(e); // TODO error;
+				throw new InvocationError();
 			}
 		}
 		
@@ -199,7 +199,7 @@ abstract public class DataCommand implements Command {
 			}
 			
 			@Override
-			public int execute(ServerCommandSource source) {
+			public int execute(ServerCommandSource source) throws InvocationError {
 				CompoundTag tag = target.getTag(source);
 				int i = insert(-1,tag, path, this.source.getData(source)); // shouldn't be 0 if error is throw.
 				target.setTag(source, tag);
@@ -213,7 +213,7 @@ abstract public class DataCommand implements Command {
 			}
 			
 			@Override
-			public int execute(ServerCommandSource source) {
+			public int execute(ServerCommandSource source) throws InvocationError {
 				CompoundTag tag = target.getTag(source);
 				int i = insert(0,tag, path, this.source.getData(source)); // shouldn't be 0 if error is throw.
 				target.setTag(source, tag);
@@ -230,7 +230,7 @@ abstract public class DataCommand implements Command {
 			}
 			
 			@Override
-			public int execute(ServerCommandSource source) {
+			public int execute(ServerCommandSource source) throws InvocationError {
 				CompoundTag tag = target.getTag(source);
 				int i = insert(index,tag, path, this.source.getData(source)); // shouldn't be 0 if error is throw.
 				target.setTag(source, tag);
@@ -246,7 +246,7 @@ abstract public class DataCommand implements Command {
 			}
 			
 			@Override
-			public int execute(ServerCommandSource source) {
+			public int execute(ServerCommandSource source) throws InvocationError {
 				CompoundTag tag = target.getTag(source);
 				Tag last = Iterables.getLast(this.source.getData(source));
 				try {
@@ -254,7 +254,7 @@ abstract public class DataCommand implements Command {
 					target.setTag(source, tag);
 					return i;
 				} catch (CommandSyntaxException e) {
-					throw new RuntimeException(e);
+					throw new InvocationError();
 				}
 				
 			}
@@ -267,13 +267,13 @@ abstract public class DataCommand implements Command {
 			}
 			
 			@Override
-			public int execute(ServerCommandSource source) {
+			public int execute(ServerCommandSource source) throws InvocationError {
 				List<Tag> tags;
 				CompoundTag result = target.getTag(source);
 				try {
 					tags = path.getOrInit(result, CompoundTag::new);
 				} catch (CommandSyntaxException e) {
-					throw new RuntimeException(e); // TODO error
+					throw new InvocationError();
 				}
 				List<Tag> list = this.source.getData(source);
 				
@@ -284,7 +284,7 @@ abstract public class DataCommand implements Command {
 				CompoundTag compoundTag3;
 				for (Tag tag : tags) {
 					if (!(tag instanceof CompoundTag)) {
-						throw new RuntimeException(); // TODO error?
+						throw new InvocationError();
 					}
 					
 					compoundTag2 = (CompoundTag) tag;
@@ -292,7 +292,7 @@ abstract public class DataCommand implements Command {
 					
 					for (Tag tag2 : list) {
 						if (!(tag2 instanceof CompoundTag)) {
-							throw new RuntimeException(); // TODO error?
+							throw new InvocationError();
 						}
 						
 						compoundTag2.copyFrom((CompoundTag) tag2);
@@ -301,11 +301,10 @@ abstract public class DataCommand implements Command {
 					i += compoundTag3.equals(compoundTag2) ? 0 : 1;
 				}
 				if(i == 0)
-					throw new RuntimeException(); // TODO Error
+					throw new InvocationError();
 				target.setTag(source, result);
 				return i;
 			}
 		}
 	}
-	
 }

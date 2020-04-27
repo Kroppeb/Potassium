@@ -7,6 +7,7 @@
 
 package kroppeb.server.command.arguments;
 
+import kroppeb.server.command.InvocationError;
 import kroppeb.server.command.reader.Reader;
 import kroppeb.server.command.reader.ReaderException;
 import net.minecraft.entity.Entity;
@@ -41,16 +42,19 @@ public class Score {
 		// world.getScoreboard()
 	}
 	
-	public void addValue(ServerWorld world, Vec3d position, Entity entity, int value) {
-		// TODO
+	public int addValue(ServerWorld world, Vec3d position, Entity entity, int value) throws InvocationError {
+		// TODO implement Score::addValue; should return the sum of the results, or error if no entities were found.
+		throw new InvocationError();
 	}
 	
-	public void setValue(ServerWorld world, Vec3d position, Entity entity, int value) {
-		// TODO
+	public int setValue(ServerWorld world, Vec3d position, Entity entity, int value) throws InvocationError {
+		// TODO implement Score::setValue; should return sum of results, or error if no entities.
+		throw new InvocationError(); // value * #entities.
 	}
 	
-	public void resetValue(ServerWorld world, Vec3d position, Entity entity) {
-		// TODO
+	public int resetValue(ServerWorld world, Vec3d position, Entity entity) throws InvocationError {
+		// TODO implement Score::resetValue; should return entity count, or error if no entities.
+		throw new InvocationError();
 	}
 	
 	public Collection<ScoreboardPlayerScore> getAll() {

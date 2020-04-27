@@ -9,6 +9,7 @@ package kroppeb.server.command.commands;
 
 import kroppeb.server.command.Command;
 import kroppeb.server.command.CommandLoader;
+import kroppeb.server.command.InvocationError;
 import kroppeb.server.command.arguments.Resource;
 import kroppeb.server.command.reader.Reader;
 import kroppeb.server.command.reader.ReaderException;
@@ -25,7 +26,7 @@ public class FunctionCommand implements Command {
 	
 	
 	@Override
-	public int execute(ServerCommandSource source) {
+	public int execute(ServerCommandSource source) throws InvocationError {
 		return function.execute(source);
 	}
 	

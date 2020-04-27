@@ -9,6 +9,7 @@ package kroppeb.server.command.commands;
 
 import com.mojang.brigadier.ResultConsumer;
 import kroppeb.server.command.Command;
+import kroppeb.server.command.InvocationError;
 import kroppeb.server.command.Parser;
 import kroppeb.server.command.arguments.ArgumentParser;
 import kroppeb.server.command.arguments.Score;
@@ -68,7 +69,8 @@ public class ExecuteCommand implements Command {
 		resultConsumer = source.resultConsumer;
 		entityAnchor = source.getEntityAnchor();
 		
-		return first.call();
+		first.call();
+		return 0; // we optimize `run execute` away. No need to return anything;
 	}
 	
 	// TODO try to replace as many calls to this as possible
@@ -167,7 +169,8 @@ public class ExecuteCommand implements Command {
 					reader.moveNext();
 					return new Rotated(readConverter(reader), pos);*/
 				}
-				// case "store": TODO
+			case "store":
+				throw new ReaderException("Execute store is not implemented");
 			case "if":
 				return readIf(reader, true);
 			case "unless":
@@ -204,7 +207,7 @@ public class ExecuteCommand implements Command {
 	}
 	
 	abstract public static class Converter {
-		abstract int call();
+		abstract void call();
 	}
 	
 	public class Align extends Converter {
@@ -218,12 +221,11 @@ public class ExecuteCommand implements Command {
 		}
 		
 		@Override
-		int call() {
+		void call() {
 			posCache = pos;
 			pos = pos.floorAlongAxes(axes);
-			int r = next.call();
+			next.call();
 			pos = posCache;
-			return r;
 		}
 	}
 	
@@ -238,12 +240,12 @@ public class ExecuteCommand implements Command {
 		}
 		
 		@Override
-		int call() {
+		void call() {
 			entityAnchorCache = entityAnchor;
 			entityAnchor = ea;
-			int r = next.call();
+			next.call();
 			entityAnchor = entityAnchorCache;
-			return r;
+			
 		}
 	}
 	
@@ -258,15 +260,13 @@ public class ExecuteCommand implements Command {
 		}
 		
 		@Override
-		int call() {
+		void call() {
 			Entity entityCache = entity;
-			int r = 0;
 			for (Entity selectorEntity : selector.getEntities(world, pos, entity)) {
 				entity = selectorEntity;
-				r += next.call();
+				next.call();
 			}
 			entity = entityCache;
-			return r;
 		}
 	}
 	
@@ -281,18 +281,16 @@ public class ExecuteCommand implements Command {
 		}
 		
 		@Override
-		int call() {
+		void call() {
 			Vec3d posCache = pos;
 			Vec2f rotCache = rot;
-			int r = 0;
 			for (Entity selectorEntity : selector.getEntities(world, pos, entity)) {
 				pos = selectorEntity.getPos();
 				rot = selectorEntity.getRotationClient();
-				r += next.call();
+				next.call();
 			}
 			pos = posCache;
 			rot = rotCache;
-			return r;
 		}
 	}
 	
@@ -307,7 +305,7 @@ public class ExecuteCommand implements Command {
 		}
 		
 		@Override
-		int call() {
+		void call() {
 			Vec2f rotCache = rot;
 			Vec3d start;
 			if (entity == null)
@@ -324,16 +322,15 @@ public class ExecuteCommand implements Command {
 					.wrapDegrees((float) (-(MathHelper.atan2(e, g) * 57.2957763671875D))); // almost 180 / pi
 			float i = MathHelper.wrapDegrees((float) (MathHelper.atan2(f, d) * 57.2957763671875D) - 90.0F);
 			rot = new Vec2f(h, i);
-			int r = next.call();
+			next.call();
 			rot = rotCache;
-			return r;
 		}
 	}
 	
 	public class FacingEntity extends Converter {
 		final Converter next;
 		final Selector selector;
-		private EntityAnchorArgumentType.EntityAnchor anchor;
+		private final EntityAnchorArgumentType.EntityAnchor anchor;
 		
 		
 		public FacingEntity(Converter next, Selector selector, EntityAnchorArgumentType.EntityAnchor anchor) {
@@ -343,9 +340,8 @@ public class ExecuteCommand implements Command {
 		}
 		
 		@Override
-		int call() {
+		void call() {
 			Vec2f rotCache = rot;
-			int r = 0;
 			
 			Vec3d start;
 			if (entity == null)
@@ -363,10 +359,9 @@ public class ExecuteCommand implements Command {
 						.wrapDegrees((float) (-(MathHelper.atan2(e, g) * 57.2957763671875F))); // (180 - 1e-5) / pi
 				float i = MathHelper.wrapDegrees((float) (MathHelper.atan2(f, d) * 57.2957763671875F) - 90.0F);
 				rot = new Vec2f(h, i);
-				r += next.call();
+				next.call();
 			}
 			rot = rotCache;
-			return r;
 		}
 	}
 	
@@ -380,12 +375,11 @@ public class ExecuteCommand implements Command {
 		}
 		
 		@Override
-		int call() {
+		void call() {
 			ServerWorld worldCache = world;
 			world = server.getWorld(dimension);
-			int r = next.call();
+			next.call();
 			world = worldCache;
-			return r;
 		}
 	}
 	
@@ -399,12 +393,11 @@ public class ExecuteCommand implements Command {
 		}
 		
 		@Override
-		int call() {
+		void call() {
 			Vec3d posCache = pos;
 			pos = innerPos.toAbsolutePos(source());
-			int r = next.call();
+			next.call();
 			pos = posCache;
-			return r;
 		}
 	}
 	
@@ -418,15 +411,14 @@ public class ExecuteCommand implements Command {
 		}
 		
 		@Override
-		int call() {
+		void call() {
 			Vec3d posCache = pos;
 			int r = 0;
 			for (Entity selectorEntity : selector.getEntities(world, pos, entity)) {
 				pos = selectorEntity.getPos();
-				r += next.call();
+				next.call();
 			}
 			pos = posCache;
-			return r;
 		}
 	}
 	
@@ -440,12 +432,11 @@ public class ExecuteCommand implements Command {
 		}
 		
 		@Override
-		int call() {
+		void call() {
 			Vec2f rotCache = rot;
 			rot = innerRot;
-			int r = next.call();
+			next.call();
 			rot = rotCache;
-			return r;
 		}
 	}
 	
@@ -459,19 +450,18 @@ public class ExecuteCommand implements Command {
 		}
 		
 		@Override
-		int call() {
+		void call() {
 			Vec2f rotCache = rot;
 			int r = 0;
 			for (Entity selectorEntity : selector.getEntities(world, pos, entity)) {
 				rot = selectorEntity.getRotationClient();
-				r += next.call();
+				next.call();
 			}
 			rot = rotCache;
-			return r;
 		}
 	}
 	
-	// store
+	// TODO: store
 	
 	public class IfBlock extends Converter {
 		final Converter next;
@@ -487,15 +477,13 @@ public class ExecuteCommand implements Command {
 		}
 		
 		@Override
-		int call() {
+		void call() {
 			BlockPos blockPos = pos.toAbsoluteBlockPos(source());
 			if (!world.isChunkLoaded(blockPos))
-				return 0; // TODO should this throw?
+				return;
 			CachedBlockPosition cachedBlock = new CachedBlockPosition(world, blockPos, true);
-			if(predicate.test(cachedBlock))
-				return next.call();
-			else
-				return 0;
+			if (predicate.test(cachedBlock))
+				next.call();
 		}
 	}
 	
@@ -511,12 +499,10 @@ public class ExecuteCommand implements Command {
 		}
 		
 		@Override
-		int call() {
+		void call() {
 			// TODO if(selector.exists())
 			if (!selector.getEntities(world, pos, entity).isEmpty() == positive) {
-				return next.call(); // TODO should be nullable
-			} else {
-				return 0;
+				next.call(); // TODO should be nullable? I think adding a virutal run at the end might be better if possible
 			}
 		}
 	}
@@ -535,11 +521,9 @@ public class ExecuteCommand implements Command {
 		}
 		
 		@Override
-		int call() {
+		void call() {
 			if (comparator.compareTo(score, world, pos, entity) == positive) {
-				return next.call(); // TODO should be nullable
-			} else {
-				return 0;
+				next.call(); // TODO should be nullable
 			}
 		}
 	}
@@ -552,8 +536,12 @@ public class ExecuteCommand implements Command {
 		}
 		
 		@Override
-		int call() {
-			return cmd.execute(source());
+		void call() {
+			try {
+				cmd.execute(source());
+			} catch (InvocationError invocationError) {
+				// TODO save values.
+			}
 		}
 		
 	}

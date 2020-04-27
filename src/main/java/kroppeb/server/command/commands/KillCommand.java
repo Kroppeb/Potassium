@@ -8,6 +8,7 @@
 package kroppeb.server.command.commands;
 
 import kroppeb.server.command.Command;
+import kroppeb.server.command.InvocationError;
 import kroppeb.server.command.arguments.Selector;
 import kroppeb.server.command.reader.Reader;
 import kroppeb.server.command.reader.ReaderException;
@@ -28,11 +29,14 @@ public class KillCommand implements Command {
 	}
 	
 	@Override
-	public int execute(ServerCommandSource source) {
+	public int execute(ServerCommandSource source) throws InvocationError {
 		Collection<? extends Entity> entities = targets.getEntities(source);
 		for (Entity entity : entities) {
 			entity.kill();
 		}
-		return entities.size();
+		int size = entities.size();
+		if(size == 0)
+			throw new InvocationError();
+		return size;
 	}
 }

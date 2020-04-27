@@ -9,12 +9,14 @@ package kroppeb.server.command.commands;
 
 import com.google.common.collect.Sets;
 import kroppeb.server.command.Command;
+import kroppeb.server.command.InvocationError;
 import kroppeb.server.command.arguments.Selector;
 import kroppeb.server.command.reader.Reader;
 import kroppeb.server.command.reader.ReaderException;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.command.ServerCommandSource;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -41,13 +43,16 @@ abstract public class TagCommand implements Command {
 		}
 		
 		@Override
-		public int execute(ServerCommandSource source) {
+		public int execute(ServerCommandSource source) throws InvocationError {
 			int count = 0;
-			for (Entity entity : targets.getEntities(source)) {
+			Collection<? extends Entity> entities = targets.getEntities(source);
+			if(entities.isEmpty())
+				throw new InvocationError();
+			for (Entity entity : entities) {
 				if(entity.addScoreboardTag(name))
 					count++;
 			}
-			return count; // TODO throw if 0?
+			return count;
 		}
 	}
 	
@@ -59,9 +64,12 @@ abstract public class TagCommand implements Command {
 		}
 		
 		@Override
-		public int execute(ServerCommandSource source) {
+		public int execute(ServerCommandSource source) throws InvocationError {
+			Collection<? extends Entity> entities = targets.getEntities(source);
+			if(entities.isEmpty())
+				throw new InvocationError();
 			Set<Object> tags = Sets.newHashSet();
-			for (Entity entity : targets.getEntities(source)) {
+			for (Entity entity : entities) {
 				tags.addAll(entity.getScoreboardTags());
 			}
 			return tags.size();
@@ -78,13 +86,16 @@ abstract public class TagCommand implements Command {
 		}
 		
 		@Override
-		public int execute(ServerCommandSource source) {
+		public int execute(ServerCommandSource source) throws InvocationError {
+			Collection<? extends Entity> entities = targets.getEntities(source);
+			if(entities.isEmpty())
+				throw new InvocationError();
 			int count = 0;
-			for (Entity entity : targets.getEntities(source)) {
+			for (Entity entity : entities) {
 				if(entity.removeScoreboardTag(name))
 					count++;
 			}
-			return count; // TODO throw if 0?
+			return count;
 		}
 	}
 }
