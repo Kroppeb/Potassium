@@ -29,7 +29,7 @@ public class FunctionNamespaceBuilder {
 		this.writer = writer;
 		this.fullName = "kroppeb/potassium/generated/" + this.name;
 		this.descriptor = "L" + fullName + ";";
-		writer.visit(V1_8,  ACC_FINAL | ACC_PUBLIC | ACC_SUPER, this.name, null, "java/lang/Object", null);
+		writer.visit(V1_8,  ACC_FINAL | ACC_PUBLIC | ACC_SUPER, this.fullName, null, "java/lang/Object", null);
 		// I'm assuming this is to make accessors or something?
 		// This allows the nested class to access private variables?
 		// Don't know if we actually need it
@@ -60,7 +60,7 @@ public class FunctionNamespaceBuilder {
 		}
 		
 		public void build(){
-			MethodVisitor mv = writer.visitMethod(ACC_PUBLIC | ACC_STATIC, name, "(Lnet/minecraft/server/command/ServerCommandSource;)V", null, null);
+			MethodVisitor mv = writer.visitMethod(ACC_PUBLIC | ACC_STATIC, name, "(Lnet/minecraft/server/command/ServerCommandSource;)I", null, null);
 			mv.visitCode();
 			
 			// debug info
@@ -74,7 +74,8 @@ public class FunctionNamespaceBuilder {
 				mv.visitVarInsn(ALOAD, 0);
 				mv.visitMethodInsn(INVOKEINTERFACE, "kroppeb/server/command/commands/Command", "execute", "(Lnet/minecraft/server/command/ServerCommandSource;)V", true);
 			}
-			mv.visitInsn(RETURN);
+			loadInt(mv, commands.size());
+			mv.visitInsn(IRETURN);
 			
 			// debug info
 			mv.visitLabel(end);
@@ -132,7 +133,7 @@ public class FunctionNamespaceBuilder {
 					),
 					new Handle(
 							Opcodes.H_INVOKESTATIC,
-							"kroppeb/test/Generated",
+							fullName,
 							function.name,
 							"(Lnet/minecraft/server/command/ServerCommandSource;)I",
 							false
@@ -159,13 +160,13 @@ public class FunctionNamespaceBuilder {
 			clinit.visitVarInsn(ALOAD, 0);
 			loadInt(clinit, j);
 			clinit.visitInsn(AALOAD);
-			clinit.visitFieldInsn(PUTSTATIC, "kroppeb/test/Generated", "command$" + j , "Lkroppeb/server/command/Command;");
+			clinit.visitFieldInsn(PUTSTATIC, fullName, fields.get(j).name , "Lkroppeb/server/command/Command;");
 		}
 		
 		Label end = new Label();
 		clinit.visitLabel(end);
 		clinit.visitInsn(RETURN);
-		clinit.visitLocalVariable("functions", "Ljava/util/Map;", null, start, part2, 0);
+		clinit.visitLocalVariable("functions", "Ljava/util/Map;", "Ljava/util/Map<Ljava/lang/String;Lkroppeb/server/command/Command;>;", start, part2, 0);
 		clinit.visitLocalVariable("commands", "[Lkroppeb/server/command/Command;", null, part2, end, 0);
 		
 		clinit.visitMaxs(3, 1);
