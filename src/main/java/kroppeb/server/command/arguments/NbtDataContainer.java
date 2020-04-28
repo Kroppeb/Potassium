@@ -40,7 +40,7 @@ public interface NbtDataContainer {
 	class Block implements NbtDataContainer {
 		final PosArgument pos;
 		
-		Block(PosArgument pos) {
+		public Block(PosArgument pos) {
 			this.pos = pos;
 		}
 		

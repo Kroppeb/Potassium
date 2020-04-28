@@ -48,25 +48,25 @@ public interface Selector {
 			reader.next();
 			switch (option) {
 				case "x":
-					sb.setX(reader.readSimpleDouble());
+					sb.setX(reader.readDouble());
 					break;
 				case "y":
-					sb.setY(reader.readSimpleDouble());
+					sb.setY(reader.readDouble());
 					break;
 				case "z":
-					sb.setZ(reader.readSimpleDouble());
+					sb.setZ(reader.readDouble());
 					break;
 				case "distance":
 					sb.setDistance(SimpleDoubleRange.read(reader));
 					break;
 				case "dx":
-					sb.setDx(reader.readSimpleDouble());
+					sb.setDx(reader.readDouble());
 					break;
 				case "dy":
-					sb.setDy(reader.readSimpleDouble());
+					sb.setDy(reader.readDouble());
 					break;
 				case "dz":
-					sb.setDz(reader.readSimpleDouble());
+					sb.setDz(reader.readDouble());
 					break;
 				case "scores":
 					Map<String, IntRange> map = new HashMap<>();

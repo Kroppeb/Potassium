@@ -75,7 +75,7 @@ public interface Reader {
 		}
 	}
 	
-	default double readSimpleDouble() throws ReaderException {
+	default double readDouble() throws ReaderException {
 		if (tryRead('.')) {
 			String number = "." + readNumber();
 			try {
@@ -128,8 +128,6 @@ public interface Reader {
 			}
 		}
 	}
-	
-	double readDouble() throws ReaderException;
 	
 	default boolean isQuotedStringStart() {
 		char p = peek();
@@ -196,6 +194,8 @@ public interface Reader {
 	void endLine() throws ReaderException;
 	
 	default boolean isWhiteSpace() {
+		if(!canRead())
+			return false;
 		char c = peek();
 		return c == ' ';
 	}

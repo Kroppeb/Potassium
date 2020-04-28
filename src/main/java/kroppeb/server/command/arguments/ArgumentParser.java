@@ -8,10 +8,6 @@
 package kroppeb.server.command.arguments;
 
 import com.google.common.collect.Lists;
-import com.mojang.brigadier.StringReader;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import kroppeb.server.command.CommandLoader;
 import kroppeb.server.command.reader.Reader;
 import kroppeb.server.command.reader.ReaderException;
@@ -23,11 +19,6 @@ import net.minecraft.command.arguments.NbtPathArgumentType.NbtPath;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.ClearCommand;
-import net.minecraft.server.command.DataCommand;
-import net.minecraft.server.command.ExecuteCommand;
-import net.minecraft.server.command.GiveCommand;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.Identifier;
@@ -36,8 +27,6 @@ import net.minecraft.util.registry.Registry;
 
 import java.util.*;
 import java.util.function.Predicate;
-
-import static net.minecraft.command.arguments.NbtPathArgumentType.INVALID_PATH_NODE_EXCEPTION;
 
 public class ArgumentParser {
 	
@@ -171,7 +160,7 @@ public class ArgumentParser {
 	private static CoordinateArgument readCoordinateArgument(Reader reader) throws ReaderException {
 		if (reader.tryRead('~')) {
 			if (reader.canRead() && reader.peek() != ' ')
-				return new CoordinateArgument(true, reader.readSimpleDouble());
+				return new CoordinateArgument(true, reader.readDouble());
 			return new CoordinateArgument(true, 0.0D);
 		} else {
 			return new CoordinateArgument(false, reader.readSimpleDoubleIntOffset());
@@ -181,7 +170,7 @@ public class ArgumentParser {
 	private static double readLookingCoordinate(Reader reader) throws ReaderException {
 		reader.readChar('^');
 		if (reader.canRead() && reader.peek() != ' ')
-			return reader.readSimpleDouble();
+			return reader.readDouble();
 		return 0.0D;
 	}
 	

@@ -38,7 +38,7 @@ abstract public class DataCommand implements Command {
 				if(reader.tryNext()){
 					NbtPath path = ArgumentParser.readPath(reader);
 					if(reader.tryNext()){
-						return new Get(target, path, reader.readSimpleDouble());
+						return new Get(target, path, reader.readDouble());
 					}
 					return new Get(target, path, null);
 				}

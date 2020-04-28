@@ -77,7 +77,7 @@ public class StringReader implements Reader {
 	 */
 	@Override
 	public void moveNext() throws ReaderException {
-		if (isWhiteSpace(peek())) {
+		if (isWhiteSpace()) {
 			do {
 				skip();
 			} while (isWhiteSpace(peek()));
@@ -136,14 +136,6 @@ public class StringReader implements Reader {
 	}
 	
 	/**
-	 * converts ints to double by adding `0.5D`
-	 */
-	@Override
-	public double readDouble() throws ReaderException {
-		throw new ReaderException("readDouble is not implemented");
-	}
-	
-	/**
 	 * read quoted or unquoted string
 	 *
 	 * @return
@@ -161,7 +153,14 @@ public class StringReader implements Reader {
 			expected("quote");
 		int pos = index + 1;
 		char start = read();
-		while (read() != start) ;
+		char c;
+		do {
+			c = read();
+			if(c == '/')
+				skip();
+		}
+		while (c != start);
+		
 		return line.substring(pos, index - 1);
 	}
 	
@@ -225,13 +224,13 @@ public class StringReader implements Reader {
 	public String readNumber() throws ReaderException {
 		char c = peek();
 		int start = index;
-		if(c == '-' || (c >= '0' && c <= '9')){
-			do{
+		if (c == '-' || (c >= '0' && c <= '9')) {
+			do {
 				skip();
-				if(!canRead())
+				if (!canRead())
 					break;
 				c = peek();
-			}while(c >= '0' && c <= '9');
+			} while (c >= '0' && c <= '9');
 			return line.substring(start, index);
 		}
 		expected("a number");
@@ -246,7 +245,7 @@ public class StringReader implements Reader {
 	 */
 	@Override
 	public boolean tryReadLiteral(String literal) {
-		if(line.regionMatches(index,literal,0,literal.length())){
+		if (line.regionMatches(index, literal, 0, literal.length())) {
 			skip(literal.length());
 			tryNext(); // TODO this feels incorrect
 			return true;
@@ -256,7 +255,7 @@ public class StringReader implements Reader {
 	
 	@Override
 	public boolean tryRead(String s) {
-		if(line.regionMatches(index,s,0,s.length())) {
+		if (line.regionMatches(index, s, 0, s.length())) {
 			skip(s.length());
 			return true;
 		}

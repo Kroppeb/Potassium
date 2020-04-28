@@ -25,12 +25,12 @@ public class SimpleDoubleRange {
 		
 		if(reader.tryRead("..")){
 			minValue = Double.NEGATIVE_INFINITY;
-			maxValue = reader.readSimpleDouble();
+			maxValue = reader.readDouble();
 		}else{
-			minValue = reader.readSimpleDouble();
+			minValue = reader.readDouble();
 			if(reader.tryRead("..")){
 				if(reader.canRead() && !reader.isWhiteSpace()) {
-					maxValue = reader.readSimpleDouble();
+					maxValue = reader.readDouble();
 				}else{
 					maxValue = Double.POSITIVE_INFINITY;
 				}

@@ -8,22 +8,24 @@
 package kroppeb.server.command.commands;
 
 import com.mojang.brigadier.ResultConsumer;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import kroppeb.server.command.Command;
 import kroppeb.server.command.InvocationError;
 import kroppeb.server.command.Parser;
-import kroppeb.server.command.arguments.ArgumentParser;
-import kroppeb.server.command.arguments.Score;
-import kroppeb.server.command.arguments.ScoreComparator;
-import kroppeb.server.command.arguments.Selector;
+import kroppeb.server.command.arguments.*;
 import kroppeb.server.command.reader.Reader;
 import kroppeb.server.command.reader.ReaderException;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.pattern.CachedBlockPosition;
+import net.minecraft.command.DataCommandStorage;
 import net.minecraft.command.arguments.EntityAnchorArgumentType;
+import net.minecraft.command.arguments.NbtPathArgumentType;
 import net.minecraft.command.arguments.PosArgument;
-import net.minecraft.entity.Entity;
+import net.minecraft.entity.boss.BossBarManager;
+import net.minecraft.entity.boss.CommandBossBar;
+import net.minecraft.nbt.*;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.CommandOutput;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.command.*;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -45,12 +47,13 @@ public class ExecuteCommand implements Command {
 	private String simpleName;
 	private Text name;
 	private MinecraftServer server;
-	private Entity entity;
+	private net.minecraft.entity.Entity entity;
 	private boolean silent;
 	private ResultConsumer<ServerCommandSource> resultConsumer;
 	private EntityAnchorArgumentType.EntityAnchor entityAnchor;
 	
 	Converter first;
+	private StoreResolver store;
 	
 	
 	@Override
@@ -170,7 +173,7 @@ public class ExecuteCommand implements Command {
 					return new Rotated(readConverter(reader), pos);*/
 				}
 			case "store":
-				throw new ReaderException("Execute store is not implemented");
+				return readStore(reader);
 			case "if":
 				return readIf(reader, true);
 			case "unless":
@@ -189,20 +192,94 @@ public class ExecuteCommand implements Command {
 				PosArgument pos = ArgumentParser.readPos(reader);
 				reader.moveNext();
 				Predicate<CachedBlockPosition> predicate = ArgumentParser.readBlockPredicate(reader, true);
-				reader.moveNext();
-				return new IfBlock(readConverter(reader), pos, predicate, true);
+				return new IfBlock(tryReadConverter(reader), pos, predicate, true);
 			case "entity":
 				Selector s = Selector.read(reader);
-				reader.moveNext();
-				return new IfEntity(readConverter(reader), s, positive);
+				return new IfEntity(tryReadConverter(reader), s, positive);
 			case "score":
 				Score score = Score.read(reader);
 				reader.moveNext();
 				ScoreComparator comparator = ScoreComparator.read(reader);
-				reader.moveNext();
-				return new IfScore(readConverter(reader), score, comparator, positive);
+				return new IfScore(tryReadConverter(reader), score, comparator, positive);
 			default:
 				throw new ReaderException("Unknown if subcommand: " + type);
+		}
+	}
+	
+	Converter tryReadConverter(Reader reader) throws ReaderException{
+		if(!reader.hasNext())
+			return null;
+		return readConverter(reader);
+	}
+	
+	Store readStore(Reader reader) throws ReaderException {
+		String save = reader.readLiteral();
+		boolean result;
+		switch (save) {
+			case "result":
+				result = true;
+				break;
+			case "success":
+				result = false;
+				break;
+			default:throw new ReaderException("expected result/success, got: " + save);
+		}
+		
+		String type = reader.readLiteral();
+		switch (type) {
+			case "block":
+				PosArgument pos = ArgumentParser.readPos(reader);
+				reader.moveNext();
+				NbtPathArgumentType.NbtPath path = ArgumentParser.readPath(reader);
+				reader.moveNext();
+				Cast cast = Cast.read(reader);
+				reader.moveNext();
+				double scale = reader.readDouble();
+				reader.moveNext();
+				return new StoreBlock(readConverter(reader), result, pos, path, cast, scale);
+			case "bossbar":
+				Identifier id = reader.readIdentifier();
+				reader.moveNext();
+				String saveTo = reader.readLiteral();
+				boolean value;
+				switch (saveTo) {
+					case "value":
+						value = true;
+						break;
+					case "max":
+						value = false;
+						break;
+					default:throw new ReaderException("expected result/success, got: " + save);
+				}
+				return new StoreBossBar(readConverter(reader), result, id,value);
+			case "entity":
+				Selector.SingleSelector singleSelector = Selector.SingleSelector.read(reader);
+				reader.moveNext();
+				path = ArgumentParser.readPath(reader);
+				reader.moveNext();
+				cast = Cast.read(reader);
+				reader.moveNext();
+				scale = reader.readDouble();
+				reader.moveNext();
+				return new StoreEntity(readConverter(reader), result, singleSelector, path, cast, scale);
+			case "score":
+				ScoreHolder holder = ScoreHolder.read(reader);
+				reader.moveNext();
+				String objective = reader.readUntilWhitespace(); // TODO fix store score
+				reader.moveNext();
+				return new StoreScore(readConverter(reader), result, holder, objective);
+			case "storage":
+				id = reader.readIdentifier();
+				reader.moveNext();
+				path = ArgumentParser.readPath(reader);
+				reader.moveNext();
+				cast = Cast.read(reader);
+				reader.moveNext();
+				scale = reader.readDouble();
+				reader.moveNext();
+				return new StoreStorage(readConverter(reader), result, id, path, cast, scale);
+			default:
+				throw new ReaderException("Unknown store subcommand: " + type);
 		}
 	}
 	
@@ -261,8 +338,8 @@ public class ExecuteCommand implements Command {
 		
 		@Override
 		void call() {
-			Entity entityCache = entity;
-			for (Entity selectorEntity : selector.getEntities(world, pos, entity)) {
+			net.minecraft.entity.Entity entityCache = entity;
+			for (net.minecraft.entity.Entity selectorEntity : selector.getEntities(world, pos, entity)) {
 				entity = selectorEntity;
 				next.call();
 			}
@@ -284,7 +361,7 @@ public class ExecuteCommand implements Command {
 		void call() {
 			Vec3d posCache = pos;
 			Vec2f rotCache = rot;
-			for (Entity selectorEntity : selector.getEntities(world, pos, entity)) {
+			for (net.minecraft.entity.Entity selectorEntity : selector.getEntities(world, pos, entity)) {
 				pos = selectorEntity.getPos();
 				rot = selectorEntity.getRotationClient();
 				next.call();
@@ -349,7 +426,7 @@ public class ExecuteCommand implements Command {
 			else
 				start = entityAnchor.offset.apply(pos, entity);
 			
-			for (Entity selectorEntity : selector.getEntities(world, pos, entity)) {
+			for (net.minecraft.entity.Entity selectorEntity : selector.getEntities(world, pos, entity)) {
 				Vec3d end = anchor.positionAt(selectorEntity);
 				double d = end.x - start.x;
 				double e = end.y - start.y;
@@ -414,7 +491,7 @@ public class ExecuteCommand implements Command {
 		void call() {
 			Vec3d posCache = pos;
 			int r = 0;
-			for (Entity selectorEntity : selector.getEntities(world, pos, entity)) {
+			for (net.minecraft.entity.Entity selectorEntity : selector.getEntities(world, pos, entity)) {
 				pos = selectorEntity.getPos();
 				next.call();
 			}
@@ -453,7 +530,7 @@ public class ExecuteCommand implements Command {
 		void call() {
 			Vec2f rotCache = rot;
 			int r = 0;
-			for (Entity selectorEntity : selector.getEntities(world, pos, entity)) {
+			for (net.minecraft.entity.Entity selectorEntity : selector.getEntities(world, pos, entity)) {
 				rot = selectorEntity.getRotationClient();
 				next.call();
 			}
@@ -461,7 +538,256 @@ public class ExecuteCommand implements Command {
 		}
 	}
 	
-	// TODO: store
+	enum Cast {
+		BYTE {
+			@Override
+			AbstractNumberTag convert(double input) {
+				return ByteTag.of((byte) (int) input);
+			}
+		}, SHORT {
+			@Override
+			AbstractNumberTag convert(double input) {
+				return ShortTag.of((short) (int) input);
+			}
+		}, INT {
+			@Override
+			AbstractNumberTag convert(double input) {
+				return IntTag.of((int) input);
+			}
+		}, LONG {
+			@Override
+			AbstractNumberTag convert(double input) {
+				return LongTag.of((long) input);
+			}
+		}, FLOAT {
+			@Override
+			AbstractNumberTag convert(double input) {
+				return FloatTag.of((float) input);
+			}
+		}, DOUBLE {
+			@Override
+			AbstractNumberTag convert(double input) {
+				return DoubleTag.of(input);
+			}
+		};
+		
+		public static Cast read(Reader reader) throws ReaderException {
+			String type = reader.readUntilWhitespace();
+			switch (type) {
+				case "byte": return BYTE;
+				case "short": return SHORT;
+				case "int": return INT;
+				case "long": return LONG;
+				case "float": return FLOAT;
+				case "double": return DOUBLE;
+				default: throw new ReaderException("Unknown datatype: " + type);
+			}
+		}
+		
+		abstract AbstractNumberTag convert(double input);
+	}
+	
+	abstract public class StoreResolver {
+		final StoreResolver prev;
+		final boolean result;
+		
+		protected StoreResolver(boolean result) {
+			this.result = result;
+			this.prev = store;
+			store = this;
+		}
+		
+		final void fail() {
+			set(0);
+			if (prev != null)
+				prev.fail();
+		}
+		
+		final void success(int value) {
+			set(result ? value : 1);
+			if (prev != null)
+				prev.success(value);
+		}
+		
+		abstract void set(int value);
+		
+		final public void restore() {
+			store = prev;
+		}
+	}
+	
+	abstract public class Store extends Converter {
+		final Converter next;
+		final boolean result;
+		
+		protected Store(Converter next, boolean result) {
+			this.next = next;
+			this.result = result;
+		}
+		
+		
+		
+		@Override
+		final void call() {
+			StoreResolver resolver = this.resolve();
+			if (resolver == null) {
+				if (store != null)
+					store.fail();
+				return;
+			}
+			next.call();
+			resolver.restore();
+		}
+		
+		protected abstract StoreResolver resolve();
+		
+		
+	}
+	
+	abstract class NbtContainer extends Store {
+		final NbtPathArgumentType.NbtPath path;
+		final Cast cast;
+		final double scale;
+		
+		protected NbtContainer(Converter next, boolean result, NbtPathArgumentType.NbtPath path, Cast cast, double scale) {
+			super(next, result);
+			this.path = path;
+			this.cast = cast;
+			this.scale = scale;
+		}
+	}
+	
+	class StoreBlock extends NbtContainer {
+		final PosArgument pos;
+		
+		protected StoreBlock(Converter next, boolean result, PosArgument pos, NbtPathArgumentType.NbtPath path, Cast cast, double scale) {
+			super(next, result, path, cast, scale);
+			this.pos = pos;
+		}
+		
+		@Override
+		protected StoreResolver resolve() {
+			BlockPos blockPos = pos.toAbsoluteBlockPos(source());
+			final BlockEntity block = world.getBlockEntity(blockPos);
+			if (block == null)
+				return null;
+			return new StoreResolver(result) {
+				@Override
+				void set(int value) {
+					CompoundTag tag = new CompoundTag();
+					block.toTag(tag);
+					try {
+						path.put(tag, () -> cast.convert(value * scale));
+					} catch (CommandSyntaxException e) {
+						return;
+					}
+					block.fromTag(block.getCachedState(), tag);
+				}
+			};
+		}
+	}
+	
+	class StoreEntity extends NbtContainer {
+		final Selector.SingleSelector selector;
+		
+		protected StoreEntity(Converter next, boolean result, Selector.SingleSelector selector, NbtPathArgumentType.NbtPath path, Cast cast, double scale) {
+			super(next, result, path, cast, scale);
+			this.selector = selector;
+		}
+		
+		@Override
+		protected StoreResolver resolve() {
+			final net.minecraft.entity.Entity entity = selector.getEntity(source());
+			if (entity == null)
+				return null;
+			return new StoreResolver(result) {
+				@Override
+				void set(int value) {
+					CompoundTag tag = new CompoundTag();
+					entity.toTag(tag);
+					try {
+						path.put(tag, () -> cast.convert(value * scale));
+					} catch (CommandSyntaxException e) {
+						return;
+					}
+					entity.fromTag(tag);
+				}
+			};
+		}
+	}
+	
+	class StoreStorage extends NbtContainer {
+		final Identifier id;
+		
+		protected StoreStorage(Converter next, boolean result, Identifier id, NbtPathArgumentType.NbtPath path, Cast cast, double scale) {
+			super(next, result, path, cast, scale);
+			this.id = id;
+		}
+		
+		@Override
+		protected StoreResolver resolve() {
+			final DataCommandStorage storage = server.getDataCommandStorage();
+			
+			return new StoreResolver(result) {
+				@Override
+				void set(int value) {
+					CompoundTag tag = storage.get(id);
+					try {
+						path.put(tag, () -> cast.convert(value * scale));
+					} catch (CommandSyntaxException e) {
+						return;
+					}
+					storage.set(id, tag);
+				}
+			};
+		}
+	}
+	
+	class StoreBossBar extends Store {
+		final Identifier id;
+		final boolean value;
+		
+		protected StoreBossBar(Converter next, boolean result, Identifier id, boolean value) {
+			super(next, result);
+			this.id = id;
+			this.value = value;
+		}
+		
+		@Override
+		protected StoreResolver resolve() {
+			final BossBarManager manager = server.getBossBarManager();
+			final CommandBossBar bar = manager.get(id);
+			if (bar == null)
+				return null;
+			return new StoreResolver(result) {
+				@Override
+				void set(int value) {
+					if (StoreBossBar.this.value) {
+						bar.setValue(value);
+					} else {
+						bar.setMaxValue(value);
+					}
+				}
+			};
+		}
+	}
+	
+	class StoreScore extends Store {
+		final ScoreHolder holder;
+		final String scoreboard;
+		
+		protected StoreScore(Converter next, boolean result, ScoreHolder holder, String scoreboard) {
+			super(next, result);
+			this.holder = holder;
+			this.scoreboard = scoreboard;
+		}
+		
+		@Override
+		protected StoreResolver resolve() {
+			// TODO implement store score.
+			throw new RuntimeException();
+		}
+	}
 	
 	public class IfBlock extends Converter {
 		final Converter next;

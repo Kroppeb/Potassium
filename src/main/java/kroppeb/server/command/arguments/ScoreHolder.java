@@ -9,6 +9,8 @@ package kroppeb.server.command.arguments;
 
 import kroppeb.server.command.reader.Reader;
 import kroppeb.server.command.reader.ReaderException;
+import net.minecraft.entity.Entity;
+import net.minecraft.server.command.ServerCommandSource;
 
 public class ScoreHolder {
 	public static ScoreHolder read(Reader reader) throws ReaderException {
@@ -25,7 +27,10 @@ public class ScoreHolder {
 	}
 	
 	abstract public static class SingleScoreHolder extends ScoreHolder{
-	
+		
+		public net.minecraft.entity.Entity getEntity(ServerCommandSource source){
+			throw new RuntimeException(); // TODO fix & implement SingleScoreHolder;
+		}
 	}
 	
 	public static class Named extends SingleScoreHolder{
