@@ -35,3 +35,8 @@ accessible	class	net/minecraft/command/arguments/NbtPathArgumentType$AllListElem
 accessible	class	net/minecraft/command/arguments/NbtPathArgumentType$FilteredListElementNode
 accessible	class	net/minecraft/command/arguments/NbtPathArgumentType$IndexedListElementNode
 accessible	class	net/minecraft/command/arguments/NbtPathArgumentType$NamedNode
+
+accessible	class	net/minecraft/server/command/AdvancementCommand$Operation
+accessible	class	net/minecraft/server/command/AdvancementCommand$Selection
+accessible	method	net/minecraft/server/command/AdvancementCommand	select	(Lnet/minecraft/advancement/Advancement;Lnet/minecraft/server/command/AdvancementCommand$Selection;)Ljava/util/List;
+accessible	method	net/minecraft/server/command/AdvancementCommand$Operation	processEachCriterion	(Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/advancement/Advancement;Ljava/lang/String;)Z

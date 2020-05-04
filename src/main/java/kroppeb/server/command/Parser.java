@@ -14,6 +14,7 @@ import kroppeb.server.command.commands.ExecuteCommand;
 import kroppeb.server.command.reader.Reader;
 import kroppeb.server.command.reader.ReaderException;
 import kroppeb.server.command.reader.StringReader;
+import net.minecraft.advancement.Advancement;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -26,9 +27,9 @@ public class Parser {
 	static public Command readFunction(Reader reader) throws ReaderException {
 		Command result;
 		String command = reader.readLiteral();
-		switch (command) {/*
+		switch (command) {
 			case "advancement":
-				return Advancement.read(reader);*/
+				return AdvancementCommand.read(reader);
 			case "data":
 				result = DataCommand.read(reader);
 				break;
