@@ -12,6 +12,7 @@ import kroppeb.server.command.reader.ReaderException;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.command.EffectCommand;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -23,19 +24,28 @@ import java.util.*;
 public interface Selector {
 	static Selector read(Reader reader) throws ReaderException {
 		reader.readChar('@');
-		switch (reader.read()) {
-			case 's':
-				if (reader.tryRead('[')) {
-					readBuilder(reader);
-					return new SelfFiltered();
-				} else {
+		char kind = reader.read();
+		if (reader.tryRead('[')) {
+			switch (kind){
+			
+			}
+			readBuilder(reader);
+			throw new ReaderException("Selector parsing isn't implemented");
+		}else {
+			switch (kind) {
+				case 's':
 					return SELF;
-				}
-			default:
-				if (reader.tryRead('[')) {
-					readBuilder(reader);
-				}
-				return new Complex();
+				case 'a':
+					return Selector.ALL_PLAYERS;
+				case 'e':
+					return Selector.ALL_ENTITIES;
+				case 'p':
+					return Selector.CLOSEST_PLAYER;
+				case 'r':
+					return Selector.RANDOM_PLAYER;
+				default:
+					throw new ReaderException("Unknown selector: @" + kind);
+			}
 		}
 	}
 	
@@ -205,6 +215,9 @@ public interface Selector {
 							i++;
 					}
 					break;
+				case "sort":
+					sb.setSort(reader.readUnquotedString());
+					break;
 				default:
 					throw new ReaderException("unknown selector option: " + option);
 			}
@@ -271,9 +284,24 @@ public interface Selector {
 		default Collection<? extends PlayerEntity> getPlayers(ServerCommandSource source){
 			return getPlayers(source.getWorld(), source.getPosition(), source.getEntity());
 		}
+		
+		static PlayerSelector read(Reader reader) throws ReaderException{
+			Selector selector = Selector.read(reader);
+			if(selector instanceof PlayerSelector)
+				return (PlayerSelector) selector;
+			throw new ReaderException("not limited to players");
+		}
 	}
 	
 	interface SinglePlayerSelector extends SingleSelector, PlayerSelector {
+		
+		static SinglePlayerSelector read(Reader reader) throws ReaderException{
+			Selector selector = Selector.read(reader);
+			if(selector instanceof SinglePlayerSelector)
+				return (SinglePlayerSelector) selector;
+			throw new ReaderException("not limited to 1 player"); // TODO check limit value why
+		}
+		
 		@Override
 		default Collection<? extends Entity> getEntities(ServerWorld world, Vec3d pos, Entity executor) {
 			return getPlayers(world, pos, executor);
@@ -288,7 +316,9 @@ public interface Selector {
 		default Collection<? extends PlayerEntity> getPlayers(ServerWorld world, Vec3d pos, Entity executor) {
 			PlayerEntity entity = getPlayer(world, pos, executor);
 			if (entity == null)
+				//noinspection unchecked
 				return Collections.EMPTY_LIST;
+			
 			return Collections.singleton(entity);
 		}
 		
