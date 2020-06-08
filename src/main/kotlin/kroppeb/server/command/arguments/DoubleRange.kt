@@ -9,21 +9,21 @@ package kroppeb.server.command.arguments
 import kroppeb.server.command.reader.Reader
 import kroppeb.server.command.reader.ReaderException
 
-class SimpleDoubleRange(val minValue: Double, val maxValue: Double) {
+class DoubleRange(val minValue: Double, val maxValue: Double) {
 
 	companion object {
 		@Throws(ReaderException::class)
-		fun read(reader: Reader): SimpleDoubleRange {
+		fun Reader.readDoubleRange(): DoubleRange {
 			val minValue: Double
 			val maxValue: Double
-			if (reader.tryRead("..")) {
+			if (tryRead("..")) {
 				minValue = Double.NEGATIVE_INFINITY
-				maxValue = reader.readDouble()
+				maxValue = readDouble()
 			} else {
-				minValue = reader.readDouble()
-				maxValue = if (reader.tryRead("..")) {
-					if (reader.canRead() && !reader.isWhiteSpace) {
-						reader.readDouble()
+				minValue = readDouble()
+				maxValue = if (tryRead("..")) {
+					if (canRead() && !isWhiteSpace) {
+						readDouble()
 					} else {
 						Double.POSITIVE_INFINITY
 					}
@@ -31,7 +31,7 @@ class SimpleDoubleRange(val minValue: Double, val maxValue: Double) {
 					minValue
 				}
 			}
-			return SimpleDoubleRange(minValue, maxValue)
+			return DoubleRange(minValue, maxValue)
 		}
 	}
 

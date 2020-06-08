@@ -98,7 +98,7 @@ class ExecuteCommand : Command {
 			"at" -> At(Selector(), readConverter())
 			"in" -> {
 				val id = Id()
-				val dim = DimensionType.byId(id) ?: throw ReaderException("Expected valid dimension, got: $id")
+				val dim = TODO() //DimensionType.byId(id) ?: throw ReaderException("Expected valid dimension, got: $id")
 				In(dim, readConverter())
 			}
 			"facing" ->
@@ -265,7 +265,7 @@ class ExecuteCommand : Command {
 			val next: Converter) : Converter() {
 		override fun call() {
 			val worldCache = world
-			world = server.getWorld(dimension)
+			world = server.getWorld(TODO()) // dimension)
 			next.call()
 			world = worldCache
 		}

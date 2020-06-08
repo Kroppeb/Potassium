@@ -6,9 +6,10 @@
  */
 package kroppeb.server.command.arguments.selector
 
-import kroppeb.server.command.arguments.IntRange
-import kroppeb.server.command.arguments.SimpleDoubleRange
+import kroppeb.server.command.arguments.DoubleRange
+import kroppeb.server.command.arguments.DoubleRange.Companion.readDoubleRange
 import kroppeb.server.command.arguments.readCompoundTag
+import kroppeb.server.command.arguments.readIntRange
 import kroppeb.server.command.reader.ReadFactory
 import kroppeb.server.command.reader.Reader
 import kroppeb.server.command.reader.ReaderException
@@ -154,7 +155,7 @@ interface Selector {
 					"x" -> sb.setX(readDouble())
 					"y" -> sb.setY(readDouble())
 					"z" -> sb.setZ(readDouble())
-					"distance" -> sb.setDistance(SimpleDoubleRange.read(this))
+					"distance" -> sb.setDistance(readDoubleRange())
 					"dx" -> sb.setDx(readDouble())
 					"dy" -> sb.setDy(readDouble())
 					"dz" -> sb.setDz(readDouble())
@@ -167,7 +168,7 @@ interface Selector {
 							next()
 							readChar('=')
 							next()
-							map[key] = IntRange.read(this)
+							map[key] = readIntRange()
 							next()
 							if (!tryRead(',')) {
 								readChar('}')
@@ -178,7 +179,7 @@ interface Selector {
 						sb.setScores(map)
 					}
 					"limit" -> sb.setLimit(readInt())
-					"level" -> sb.setLevel(IntRange.read(this))
+					"level" -> sb.setLevel(readIntRange())
 					"gamemode" -> {
 						if (sb.gamemode == null) sb.gamemode = Group()
 						if (tryRead('!')) {
@@ -252,8 +253,8 @@ interface Selector {
 							sb.predicate!!.positive.add(readIdentifier())
 						}
 					}
-					"x_rotation" -> sb.setxRotation(SimpleDoubleRange.read(this))
-					"y_rotation" -> sb.setyRotation(SimpleDoubleRange.read(this))
+					"x_rotation" -> sb.setXRotation(readDoubleRange())
+					"y_rotation" -> sb.setYRotation(readDoubleRange())
 					"advancements" -> {
 						//TODO add advancements
 						var i = 1

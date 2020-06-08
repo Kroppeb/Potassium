@@ -37,7 +37,7 @@ abstract class SummonCommand : Command {
 			} else {
 				if (initialize && entity2 is MobEntity) {
 					entity2.initialize(world, world.getLocalDifficulty(entity2
-							.getBlockPos()), SpawnType.COMMAND, null as EntityData?, null as CompoundTag?)
+							.getBlockPos()),TODO("huh") , null as EntityData?, null as CompoundTag?)
 				}
 			}
 			return 1

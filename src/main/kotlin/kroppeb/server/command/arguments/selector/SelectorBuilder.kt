@@ -7,11 +7,14 @@
 
 package kroppeb.server.command.arguments.selector
 
-import kroppeb.server.command.arguments.IntRange
-import kroppeb.server.command.arguments.SimpleDoubleRange
+import kroppeb.server.command.arguments.DoubleRange
 import kroppeb.server.command.reader.ReaderException
+import net.minecraft.entity.Entity
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.scoreboard.Scoreboard
+import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.Identifier
+import java.util.function.Predicate
 
 class SelectorBuilder {
 	@Throws(ReaderException::class)
@@ -21,79 +24,108 @@ class SelectorBuilder {
 
 	//region setters
 	@Throws(ReaderException::class)
-	fun setX(x: Double?) {
+	fun setX(x: Double) {
 		assertSingle(this.x, "x")
 		this.x = x
 	}
 
 	@Throws(ReaderException::class)
-	fun setY(y: Double?) {
+	fun setY(y: Double) {
 		assertSingle(this.y, "y")
 		this.y = y
 	}
 
 	@Throws(ReaderException::class)
-	fun setZ(z: Double?) {
+	fun setZ(z: Double) {
 		assertSingle(this.z, "z")
 		this.z = z
 	}
 
 	@Throws(ReaderException::class)
-	fun setDistance(distance: SimpleDoubleRange?) {
+	fun setDistance(distance: DoubleRange) {
 		assertSingle(this.distance, "distance")
 		this.distance = distance
 	}
 
 	@Throws(ReaderException::class)
-	fun setDx(dx: Double?) {
+	fun setDx(dx: Double) {
 		assertSingle(this.dx, "dx")
 		this.dx = dx
 	}
 
 	@Throws(ReaderException::class)
-	fun setDy(dy: Double?) {
+	fun setDy(dy: Double) {
 		assertSingle(this.dy, "dy")
 		this.dy = dy
 	}
 
 	@Throws(ReaderException::class)
-	fun setDz(dz: Double?) {
+	fun setDz(dz: Double) {
 		assertSingle(this.dz, "dz")
 		this.dz = dz
 	}
 
 	@Throws(ReaderException::class)
-	fun setScores(scores: Map<String, IntRange>?) {
+	fun setScores(scores: Map<String, kotlin.ranges.IntRange>) {
 		assertSingle(this.scores, "scores")
+		result += Predicate { entity ->
+			val scoreboard: Scoreboard = entity.server!!.scoreboard
+			val string = entity.entityName
+
+			for (entry in scores.entries) {
+				val scoreboardObjective = scoreboard.getNullableObjective(entry.key)
+						?: return@Predicate false
+				if (!scoreboard.playerHasObjective(string, scoreboardObjective))
+					return@Predicate false
+
+				val scoreboardPlayerScore = scoreboard.getPlayerScore(
+						string,
+						scoreboardObjective)
+				if(scoreboardPlayerScore.score !in entry.value)
+					return@Predicate false
+			}
+			return@Predicate true
+		}
 		this.scores = scores
 	}
 
 	@Throws(ReaderException::class)
-	fun setLimit(limit: Int?) {
+	fun setLimit(limit: Int) {
+		onlyOne = onlyOne || limit == 1
+		if(limit < 1)
+			throw ReaderException("limit has to be at least 1")
 		assertSingle(this.limit, "limit")
 		this.limit = limit
 	}
 
 	@Throws(ReaderException::class)
-	fun setSort(sort: String?) {
+	fun setSort(sort: String) {
 		assertSingle(this.sort, "sort")
 		this.sort = sort
 	}
 
 	@Throws(ReaderException::class)
-	fun setLevel(level: IntRange?) {
+	fun setLevel(level: IntRange) {
 		assertSingle(this.level, "level")
+		if(level.first < 0 || level.last < 0)
+			throw ReaderException("level can't be negative")
+
+		result += Predicate { entity ->
+			entity as ServerPlayerEntity
+			entity.experienceLevel in level
+		}
 		this.level = level
 	}
 
 	@Throws(ReaderException::class)
-	fun setxRotation(xRotation: SimpleDoubleRange?) {
+	fun setXRotation(xRotation: DoubleRange) {
 		assertSingle(this.xRotation, "x_rotation")
+
 		this.xRotation = xRotation
 	}
 
 	@Throws(ReaderException::class)
-	fun setyRotation(yRotation: SimpleDoubleRange?) {
+	fun setYRotation(yRotation: DoubleRange) {
 		assertSingle(this.yRotation, "y_rotation")
 		this.yRotation = yRotation
 	}
@@ -109,7 +141,7 @@ class SelectorBuilder {
 	private var x: Double? = null
 	private var y: Double? = null
 	private var z: Double? = null
-	private var distance: SimpleDoubleRange? = null
+	private var distance: DoubleRange? = null
 	private var dx: Double? = null
 	private var dy: Double? = null
 	private var dz: Double? = null
@@ -120,12 +152,19 @@ class SelectorBuilder {
 	private var level: IntRange? = null
 	var gamemode: Selector.Group<String>? = null
 	var name: Selector.Group<String>? = null
-	private var xRotation: SimpleDoubleRange? = null
-	private var yRotation: SimpleDoubleRange? = null
+	private var xRotation: DoubleRange? = null
+	private var yRotation: DoubleRange? = null
 	var type: Selector.Group<Selector.Tagable<Identifier>>? = null
 	var tag: Selector.Group<String>? = null
 	var nbt: Selector.Group<CompoundTag>? = null
 	private var advancements: String? = null
-	var predicate: Selector.Group<Identifier>? = null //endregion
+	//endregion
+
+	var predicate: Selector.Group<Identifier>? = null
+	var onlyPlayers = false
+	var onlyOne = false
 	// TODO save order.
+
+	val result: MutableList<Predicate<Entity>> = mutableListOf()
 }
+
