@@ -59,3 +59,11 @@ fun Reader.Int() = readAndMove { readInt() }
 @ReaderDslMarker
 fun Reader.Double() = readAndMove { readDouble() }
 
+@Suppress("FunctionName")
+@ReaderDslMarker
+fun Reader.String() = readAndMove { readString() }
+
+@ReaderDslMarker
+fun Reader.UUID() = try{UUID.fromString(Literal())}catch (e:IllegalAccessException){
+	throw ReaderException("Invalid uuid", e)
+}

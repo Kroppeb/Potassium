@@ -42,5 +42,5 @@ fun loadLong(clinit: MethodVisitor, value: Float) = when (value) {
 }
 
 
+fun <T> todo(msg: String): T = throw NotImplementedError("Todo: $msg")
 
-fun <T>todo(msg: String):T = throw NotImplementedError("Todo: $msg")

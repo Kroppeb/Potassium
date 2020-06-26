@@ -179,28 +179,28 @@ class StringReader : Reader {
 	@Throws(ReaderException::class)
 	override fun readLine(): String {
 		if (!canRead()) eof("more text")
-		val s = line!!.substring(index)
-		index = line!!.length
+		val s = line.substring(index)
+		index = line.length
 		return s
 	}
 
 	@Throws(ReaderException::class)
 	override fun endLine() {
 		if (canRead()) expected("end of line")
-		index = line!!.length
+		index = line.length
 	}
 
 	@Throws(ReaderException::class)
 	override fun readNumber(): String? {
 		var c = peek()
 		val start = index
-		if (c == '-' || c >= '0' && c <= '9') {
+		if (c == '-' || c in '0'..'9') {
 			do {
 				skip()
 				if (!canRead()) break
 				c = peek()
-			} while (c >= '0' && c <= '9')
-			return line!!.substring(start, index)
+			} while (c in '0'..'9')
+			return line.substring(start, index)
 		}
 		expected("a number")
 		return null // UNREACHABLE CODE
@@ -213,7 +213,7 @@ class StringReader : Reader {
 	 * @return
 	 */
 	override fun tryReadLiteral(literal: String): Boolean {
-		if (line!!.regionMatches(index, literal, 0, literal.length)) {
+		if (line.regionMatches(index, literal, 0, literal.length)) {
 			skip(literal.length)
 			tryNext() // TODO this feels incorrect
 			return true
@@ -222,7 +222,7 @@ class StringReader : Reader {
 	}
 
 	override fun tryRead(s: String): Boolean {
-		if (line!!.regionMatches(index, s, 0, s.length)) {
+		if (line.regionMatches(index, s, 0, s.length)) {
 			skip(s.length)
 			return true
 		}

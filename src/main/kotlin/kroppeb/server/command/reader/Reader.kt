@@ -249,7 +249,7 @@ interface Reader {
 	}
 
 	fun moveOrEnd() {
-		if(last() == ' ')
+		if (last() == ' ')
 			return // Multiple calls to this won't do anything
 		if (canRead()) {
 			moveNext()
@@ -264,12 +264,15 @@ interface Reader {
 
 	@Throws(ReaderException::class)
 	@ReaderDslMarker
-	operator fun <T> ReadFactory<T>.invoke(): T = readAndMove { parse()}
+	operator fun <T> ReadFactory<T>.invoke(): T = readAndMove { parse() }
 
 	@ReaderDslMarker
 	operator fun <T> ReadFactory<T>.provideDelegate(thisRef: Any?, property: KProperty<*>): ItemDelegate<T> =
-			ItemDelegate(readAndMove{parse()})
+		ItemDelegate(readAndMove { parse() })
 }
 
 @ReaderDslMarker
-inline fun <T>Reader.readAndMove(block:Reader.() -> T):T = block().also { moveOrEnd() }
+inline fun <T> Reader.readAndMove(block: Reader.() -> T): T = block().also { moveOrEnd() }
+
+fun Reader.expected(prefix: String, expected: String, got: String): Nothing =
+	throw ReaderException("Expected `$prefix $expected` but got `$prefix $got` instead.")
