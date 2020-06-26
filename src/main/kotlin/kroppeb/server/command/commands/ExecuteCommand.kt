@@ -11,10 +11,13 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException
 import kroppeb.server.command.Command
 import kroppeb.server.command.InvocationError
 import kroppeb.server.command.Parser
-import kroppeb.server.command.arguments.*
+import kroppeb.server.command.arguments.Score
+import kroppeb.server.command.arguments.ScoreComparator
+import kroppeb.server.command.arguments.ScoreHolder
 import kroppeb.server.command.arguments.selector.Selector
 import kroppeb.server.command.arguments.selector.Selector.SingleSelector
 import kroppeb.server.command.reader.*
+import kroppeb.server.command.todo
 import net.minecraft.block.pattern.CachedBlockPosition
 import net.minecraft.command.arguments.EntityAnchorArgumentType.EntityAnchor
 import net.minecraft.command.arguments.NbtPathArgumentType.NbtPath
@@ -31,7 +34,8 @@ import net.minecraft.util.math.Direction
 import net.minecraft.util.math.MathHelper
 import net.minecraft.util.math.Vec2f
 import net.minecraft.util.math.Vec3d
-import net.minecraft.world.dimension.DimensionType
+import net.minecraft.util.registry.Registry
+import net.minecraft.util.registry.RegistryKey
 import org.apache.commons.lang3.NotImplementedException
 import java.util.*
 import java.util.function.Predicate
@@ -73,15 +77,15 @@ class ExecuteCommand : Command {
 	@Deprecated("")
 	private fun source(): ServerCommandSource {
 		return ServerCommandSource(
-				output,
-				pos,
-				rot,
-				world,
-				level,
-				simpleName,
-				name,
-				server,
-				entity)
+			output,
+			pos,
+			rot,
+			world,
+			level,
+			simpleName,
+			name,
+			server,
+			entity)
 	}
 
 	@Throws(ReaderException::class)
@@ -89,26 +93,29 @@ class ExecuteCommand : Command {
 		return when (val subCommand = Literal()) {
 			"align" -> Align(Swizzle(), readConverter())
 			"anchored" -> Anchored(
-					when (val type = Literal()) {
-						"eyes" -> EntityAnchor.EYES
-						"feet" -> EntityAnchor.FEET
-						else -> throw ReaderException("Expected <eyes/feet> but got: $type")
-					}, readConverter())
+				when (val type = Literal()) {
+					"eyes" -> EntityAnchor.EYES
+					"feet" -> EntityAnchor.FEET
+					else -> throw ReaderException("Expected <eyes/feet> but got: $type")
+				}, readConverter())
 			"as" -> As(Selector(), readConverter())
 			"at" -> At(Selector(), readConverter())
 			"in" -> {
 				val id = Id()
-				val dim = TODO() //DimensionType.byId(id) ?: throw ReaderException("Expected valid dimension, got: $id")
+				val registryKey = RegistryKey.of(Registry.DIMENSION, id)
+				val dim = todo<MinecraftServer>("get server") //TODO get server
+					.getWorld(registryKey)
+					?: throw ReaderException("unknown dimension: $id")
 				In(dim, readConverter())
 			}
 			"facing" ->
 				if (tryReadLiteral("entity")) FacingEntity(
-						Selector(),
-						when (val facing = Literal()) {
-							"eyes" -> EntityAnchor.EYES
-							"feet" -> EntityAnchor.FEET
-							else -> throw ReaderException("unknown facing anchor: $Literal")
-						}, readConverter())
+					Selector(),
+					when (val facing = Literal()) {
+						"eyes" -> EntityAnchor.EYES
+						"feet" -> EntityAnchor.FEET
+						else -> throw ReaderException("unknown facing anchor: $Literal")
+					}, readConverter())
 				else FacingPos(Pos(), readConverter())
 			"positioned" ->
 				if (tryReadLiteral("as")) PositionedAs(Selector(), readConverter())
@@ -150,7 +157,7 @@ class ExecuteCommand : Command {
 		return when (val type = Literal()) {
 			"block" -> StoreBlock(result, Pos(), Path(), Cast(), Double(), readConverter())
 			"bossbar" -> StoreBossBar(
-					result, Id(), when (Literal()) {
+				result, Id(), when (Literal()) {
 				"value" -> true
 				"max" -> false
 				else -> throw ReaderException("expected result/success, got: $save")
@@ -214,14 +221,13 @@ class ExecuteCommand : Command {
 	}
 
 	inner class FacingPos(
-			val posArgument: PosArgument,
-			val next: Converter) : Converter() {
+		val posArgument: PosArgument,
+		val next: Converter) : Converter() {
 		override fun call() {
 			val rotCache = rot
-			val start: Vec3d?
-			start = if (entity == null) pos else entityAnchor.offset.apply(pos, entity)
+			val start: Vec3d = if (entity == null) pos else entityAnchor.offset.apply(pos, entity)
 			val end = posArgument.toAbsolutePos(source())
-			val d = end.x - start!!.x
+			val d = end.x - start.x
 			val e = end.y - start.y
 			val f = end.z - start.z
 			val g = MathHelper.sqrt(d * d + f * f).toDouble()
@@ -236,16 +242,15 @@ class ExecuteCommand : Command {
 	}
 
 	inner class FacingEntity(
-			val selector: Selector,
-			private val anchor: EntityAnchor,
-			val next: Converter) : Converter() {
+		val selector: Selector,
+		private val anchor: EntityAnchor,
+		val next: Converter) : Converter() {
 		override fun call() {
 			val rotCache = rot
-			val start: Vec3d?
-			start = if (entity == null) pos else entityAnchor.offset.apply(pos, entity)
+			val start: Vec3d = if (entity == null) pos else entityAnchor.offset.apply(pos, entity)
 			for (selectorEntity in selector.getEntities(world, pos, entity)) {
 				val end = anchor.positionAt(selectorEntity)
-				val d = end.x - start!!.x
+				val d = end.x - start.x
 				val e = end.y - start.y
 				val f = end.z - start.z
 				val g = MathHelper.sqrt(d * d + f * f).toDouble()
@@ -261,11 +266,11 @@ class ExecuteCommand : Command {
 	}
 
 	inner class In(
-			val dimension: DimensionType,
-			val next: Converter) : Converter() {
+		val dimension: ServerWorld,
+		val next: Converter) : Converter() {
 		override fun call() {
 			val worldCache = world
-			world = server.getWorld(TODO()) // dimension)
+			world = dimension
 			next.call()
 			world = worldCache
 		}
@@ -273,8 +278,8 @@ class ExecuteCommand : Command {
 	}
 
 	inner class Positioned(
-			val innerPos: PosArgument,
-			val next: Converter) : Converter() {
+		val innerPos: PosArgument,
+		val next: Converter) : Converter() {
 		override fun call() {
 			val posCache: Vec3d = pos
 			pos = innerPos.toAbsolutePos(source())
@@ -285,8 +290,8 @@ class ExecuteCommand : Command {
 	}
 
 	inner class PositionedAs(
-			val selector: Selector,
-			val next: Converter) : Converter() {
+		val selector: Selector,
+		val next: Converter) : Converter() {
 		override fun call() {
 			val posCache = pos
 			val r = 0
@@ -300,8 +305,8 @@ class ExecuteCommand : Command {
 	}
 
 	inner class Rotated(
-			val innerRot: Vec2f,
-			val next: Converter) : Converter() {
+		val innerRot: Vec2f,
+		val next: Converter) : Converter() {
 		override fun call() {
 			val rotCache = innerRot
 			rot = innerRot
@@ -312,8 +317,8 @@ class ExecuteCommand : Command {
 	}
 
 	inner class RotatedAs(
-			val selector: Selector,
-			val next: Converter) : Converter() {
+		val selector: Selector,
+		val next: Converter) : Converter() {
 		override fun call() {
 			val rotCache = rot
 			for (selectorEntity in selector.getEntities(world, pos, entity)) {
@@ -399,8 +404,8 @@ class ExecuteCommand : Command {
 	}
 
 	abstract inner class Store protected constructor(
-			val result: Boolean,
-			val next: Converter) : Converter() {
+		val result: Boolean,
+		val next: Converter) : Converter() {
 		override fun call() {
 			val resolver = this.resolve()
 			if (resolver == null) {
@@ -416,19 +421,19 @@ class ExecuteCommand : Command {
 	}
 
 	internal abstract inner class NbtContainer protected constructor(
-			next: Converter,
-			result: Boolean,
-			val path: NbtPath,
-			val cast: Cast,
-			val scale: Double) : Store(result, next)
+		next: Converter,
+		result: Boolean,
+		val path: NbtPath,
+		val cast: Cast,
+		val scale: Double) : Store(result, next)
 
 	internal inner class StoreBlock(
-			result: Boolean,
-			val pos: PosArgument,
-			path: NbtPath,
-			cast: Cast,
-			scale: Double,
-			next: Converter) : NbtContainer(next, result, path, cast, scale) {
+		result: Boolean,
+		val pos: PosArgument,
+		path: NbtPath,
+		cast: Cast,
+		scale: Double,
+		next: Converter) : NbtContainer(next, result, path, cast, scale) {
 		override fun resolve(): StoreResolver? {
 			val blockPos = pos.toAbsoluteBlockPos(source())
 			val block = world.getBlockEntity(blockPos) ?: return null
@@ -449,12 +454,12 @@ class ExecuteCommand : Command {
 	}
 
 	internal inner class StoreEntity(
-			result: Boolean,
-			val selector: SingleSelector,
-			path: NbtPath,
-			cast: Cast,
-			scale: Double,
-			next: Converter) : NbtContainer(next, result, path, cast, scale) {
+		result: Boolean,
+		val selector: SingleSelector,
+		path: NbtPath,
+		cast: Cast,
+		scale: Double,
+		next: Converter) : NbtContainer(next, result, path, cast, scale) {
 		override fun resolve(): StoreResolver? {
 			val entity = selector.getEntity(source()) ?: return null
 			return object : StoreResolver(result) {
@@ -474,12 +479,12 @@ class ExecuteCommand : Command {
 	}
 
 	internal inner class StoreStorage(
-			result: Boolean,
-			val id: Identifier,
-			path: NbtPath,
-			cast: Cast,
-			scale: Double,
-			next: Converter) : NbtContainer(next, result, path, cast, scale) {
+		result: Boolean,
+		val id: Identifier,
+		path: NbtPath,
+		cast: Cast,
+		scale: Double,
+		next: Converter) : NbtContainer(next, result, path, cast, scale) {
 		override fun resolve(): StoreResolver? {
 			val storage = server.dataCommandStorage
 			return object : StoreResolver(result) {
@@ -498,10 +503,10 @@ class ExecuteCommand : Command {
 	}
 
 	internal inner class StoreBossBar(
-			result: Boolean,
-			val id: Identifier?,
-			val value: Boolean,
-			next: Converter) : Store(result, next) {
+		result: Boolean,
+		val id: Identifier?,
+		val value: Boolean,
+		next: Converter) : Store(result, next) {
 		override fun resolve(): StoreResolver? {
 			val manager = server.bossBarManager
 			val bar = manager[id] ?: return null
@@ -519,10 +524,10 @@ class ExecuteCommand : Command {
 	}
 
 	internal inner class StoreScore(
-			result: Boolean,
-			val holder: ScoreHolder,
-			val scoreboard: String?,
-			next: Converter) : Store(result, next) {
+		result: Boolean,
+		val holder: ScoreHolder,
+		val scoreboard: String?,
+		next: Converter) : Store(result, next) {
 		override fun resolve(): StoreResolver? {
 			// TODO implement store score.
 			throw RuntimeException()
@@ -531,41 +536,42 @@ class ExecuteCommand : Command {
 	}
 
 	inner class IfBlock(
-			val pos: PosArgument,
-			val predicate: Predicate<CachedBlockPosition>,
-			val positive: Boolean,
-			val next: Converter?) : Converter() {
+		val pos: PosArgument,
+		val predicate: Predicate<CachedBlockPosition>,
+		val positive: Boolean,
+		val next: Converter?) : Converter() {
 		override fun call() {
 			val blockPos = pos.toAbsoluteBlockPos(source())
 			if (!world.isChunkLoaded(blockPos)) return
 			val cachedBlock = CachedBlockPosition(world, blockPos, true)
 			if (predicate.test(cachedBlock) == positive) next?.call()
-					?: TODO("I think I still have to do something here")
+				?: TODO("I think I still have to do something here")
 		}
 
 	}
 
 	inner class IfEntity(
-			val selector: Selector,
-			val positive: Boolean,
-			val next: Converter?) : Converter() {
+		val selector: Selector,
+		val positive: Boolean,
+		val next: Converter?) : Converter() {
 		override fun call() {
 			// TODO if(selector.exists())
 			if (!selector.getEntities(world, pos, entity).isEmpty() == positive) {
-				next?.call()?:TODO("should be nullable? I think adding a virutal run at the end might be better if possible")
+				next?.call()
+					?: TODO("should be nullable? I think adding a virutal run at the end might be better if possible")
 			}
 		}
 
 	}
 
 	inner class IfScore(
-			val score: Score,
-			val comparator: ScoreComparator,
-			val positive: Boolean,
-			val next: Converter?) : Converter() {
+		val score: Score,
+		val comparator: ScoreComparator,
+		val positive: Boolean,
+		val next: Converter?) : Converter() {
 		override fun call() {
 			if (comparator.compareTo(score, world, pos, entity) == positive) {
-				next?.call()?: TODO("should be nullable")
+				next?.call() ?: TODO("should be nullable")
 			}
 		}
 
