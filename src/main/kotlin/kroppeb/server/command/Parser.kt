@@ -29,6 +29,7 @@ object Parser {
 			"execute" -> ExecuteCommand.read(reader)
 			"function" -> FunctionCommand.read(reader)
 			"kill" -> KillCommand.read(reader)
+			"locatebiome" -> LocateBiomeCommand.read(reader)
 			"scoreboard" -> ScoreboardCommand.read(reader)
 			"setblock" -> SetBlockCommand.read(reader)
 			"summon" -> SummonCommand.read(reader)
