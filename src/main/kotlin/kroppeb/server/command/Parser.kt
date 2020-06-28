@@ -25,6 +25,7 @@ object Parser {
 		result = when (command) {
 			"advancement" -> AdvancementCommand.read(reader)
 			"attribute" -> AttributeCommand.read(reader)
+			"bossbar" -> BossBarCommand.read(reader)
 			"data" -> DataCommand.read(reader)
 			"execute" -> ExecuteCommand.read(reader)
 			"function" -> FunctionCommand.read(reader)

@@ -8,16 +8,13 @@ package kroppeb.server.command.commands
 
 import com.mojang.brigadier.ResultConsumer
 import com.mojang.brigadier.exceptions.CommandSyntaxException
-import kroppeb.server.command.Command
-import kroppeb.server.command.InvocationError
-import kroppeb.server.command.Parser
+import kroppeb.server.command.*
 import kroppeb.server.command.arguments.Score
 import kroppeb.server.command.arguments.ScoreComparator
 import kroppeb.server.command.arguments.ScoreHolder
 import kroppeb.server.command.arguments.selector.Selector
 import kroppeb.server.command.arguments.selector.Selector.SingleSelector
 import kroppeb.server.command.reader.*
-import kroppeb.server.command.todo
 import net.minecraft.block.pattern.CachedBlockPosition
 import net.minecraft.command.arguments.EntityAnchorArgumentType.EntityAnchor
 import net.minecraft.command.arguments.NbtPathArgumentType.NbtPath
@@ -103,7 +100,7 @@ class ExecuteCommand : Command {
 			"in" -> {
 				val id = Id()
 				val registryKey = RegistryKey.of(Registry.DIMENSION, id)
-				val dim = todo<MinecraftServer>("get server") //TODO get server
+				val dim = getServer() //TODO get server
 					.getWorld(registryKey)
 					?: throw ReaderException("unknown dimension: $id")
 				In(dim, readConverter())

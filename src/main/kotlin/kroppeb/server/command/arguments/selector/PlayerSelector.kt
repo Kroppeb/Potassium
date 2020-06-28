@@ -13,6 +13,7 @@ import kroppeb.server.command.reader.ReaderException
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.server.command.ServerCommandSource
+import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.Vec3d
 
@@ -21,8 +22,8 @@ interface PlayerSelector : Selector {
 		return getPlayers(world, pos, executor)
 	}
 
-	fun getPlayers(world: ServerWorld, pos: Vec3d?, executor: Entity?): Collection<PlayerEntity>
-	fun getPlayers(source: ServerCommandSource): Collection<PlayerEntity?>? {
+	fun getPlayers(world: ServerWorld, pos: Vec3d?, executor: Entity?): Collection<ServerPlayerEntity>
+	fun getPlayers(source: ServerCommandSource): Collection<ServerPlayerEntity> {
 		return getPlayers(source.world, source.position, source.entity)
 	}
 

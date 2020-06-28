@@ -148,7 +148,7 @@ class StringReader : Reader {
 			c = read()
 			if (c == '/') skip()
 		} while (c != start)
-		return line!!.substring(pos, index - 1)
+		return line.substring(pos, index - 1)
 	}
 
 	@Throws(ReaderException::class)
@@ -156,7 +156,7 @@ class StringReader : Reader {
 		if (!isAllowedInUnquotedString) expected("unquoted string")
 		val pos = index
 		while (isAllowedInUnquotedString) read()
-		return line!!.substring(pos, index)
+		return line.substring(pos, index)
 	}
 
 	@Throws(ReaderException::class)
@@ -164,7 +164,7 @@ class StringReader : Reader {
 		if (!isAllowedInIdentifier) expected("identifier")
 		val pos = index
 		do skip() while (isAllowedInIdentifier)
-		val str = line!!.substring(pos, index)
+		val str = line.substring(pos, index)
 		return Identifier.tryParse(str) ?: throw ReaderException("Couldn't parse $str as an identifier")
 	}
 
@@ -173,7 +173,7 @@ class StringReader : Reader {
 		if (!isAllowedInNamedPath) expected("identifier")
 		val pos = index
 		do skip() while (isAllowedInNamedPath)
-		return line!!.substring(pos, index)
+		return line.substring(pos, index)
 	}
 
 	@Throws(ReaderException::class)

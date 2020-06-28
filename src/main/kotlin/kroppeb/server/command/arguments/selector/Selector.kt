@@ -16,6 +16,7 @@ import kroppeb.server.command.reader.ReaderException
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.server.command.ServerCommandSource
+import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.Vec3d
 import java.util.*
@@ -56,27 +57,27 @@ interface Selector {
 	}
 
 	object Self : SinglePlayerSelector {
-		override fun getPlayer(world: ServerWorld, pos: Vec3d?, executor: Entity?): PlayerEntity? {
-			return if (executor is PlayerEntity) executor else null
+		override fun getPlayer(world: ServerWorld, pos: Vec3d?, executor: Entity?): ServerPlayerEntity? {
+			return if (executor is ServerPlayerEntity) executor else null
 		}
 	}
 
 	class SelfFiltered : SinglePlayerSelector {
-		override fun getPlayer(world: ServerWorld, pos: Vec3d?, executor: Entity?): PlayerEntity? {
+		override fun getPlayer(world: ServerWorld, pos: Vec3d?, executor: Entity?): ServerPlayerEntity? {
 			return null // TODO implement
 		}
 	}
 
 	class SinglePlayer : SinglePlayerSelector {
-		override fun getPlayer(world: ServerWorld, pos: Vec3d?, executor: Entity?): PlayerEntity? {
+		override fun getPlayer(world: ServerWorld, pos: Vec3d?, executor: Entity?): ServerPlayerEntity? {
 			return null
 			// TODO implement
 		}
 	}
 
 	object ClosestPlayer : SinglePlayerSelector {
-		override fun getPlayer(world: ServerWorld, pos: Vec3d?, executor: Entity?): PlayerEntity? {
-			var player: PlayerEntity? = null
+		override fun getPlayer(world: ServerWorld, pos: Vec3d?, executor: Entity?): ServerPlayerEntity? {
+			var player: ServerPlayerEntity? = null
 			var distance = Double.NEGATIVE_INFINITY
 			for (worldPlayer in world.players) {
 				val d = worldPlayer.squaredDistanceTo(pos)
@@ -90,19 +91,19 @@ interface Selector {
 	}
 
 	object RandomPlayer : SinglePlayerSelector {
-		override fun getPlayer(world: ServerWorld, pos: Vec3d?, executor: Entity?): PlayerEntity? {
+		override fun getPlayer(world: ServerWorld, pos: Vec3d?, executor: Entity?): ServerPlayerEntity? {
 			return world.randomAlivePlayer
 		}
 	}
 
 	object AllPlayers : PlayerSelector {
-		override fun getPlayers(world: ServerWorld, pos: Vec3d?, executor: Entity?): Collection<PlayerEntity> {
+		override fun getPlayers(world: ServerWorld, pos: Vec3d?, executor: Entity?): Collection<ServerPlayerEntity> {
 			return world.players
 		}
 	}
 
 	class PlayersFiltred : PlayerSelector {
-		override fun getPlayers(world: ServerWorld, pos: Vec3d?, executor: Entity?): Collection<PlayerEntity> {
+		override fun getPlayers(world: ServerWorld, pos: Vec3d?, executor: Entity?): Collection<ServerPlayerEntity> {
 			return emptySet()
 			// TODO implement
 		}

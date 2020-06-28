@@ -46,7 +46,7 @@ class FunctionNamespaceBuilder(private val writer: ClassVisitor) {
 				mv.visitVarInsn(Opcodes.ALOAD, 0)
 				mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "kroppeb/server/command/commands/Command", "execute", "(Lnet/minecraft/server/command/ServerCommandSource;)V", true)
 			}
-			Util.loadInt(mv, commands.size)
+			loadInt(mv, commands.size)
 			mv.visitInsn(Opcodes.IRETURN)
 
 			// debug info
@@ -112,7 +112,7 @@ class FunctionNamespaceBuilder(private val writer: ClassVisitor) {
 		clinit.visitVarInsn(Opcodes.ASTORE, 0)
 		for (j in fields.indices) {
 			clinit.visitVarInsn(Opcodes.ALOAD, 0)
-			Util.loadInt(clinit, j)
+			loadInt(clinit, j)
 			clinit.visitInsn(Opcodes.AALOAD)
 			clinit.visitFieldInsn(Opcodes.PUTSTATIC, fullName, fields[j].name, "Lkroppeb/server/command/Command;")
 		}

@@ -6,6 +6,8 @@
  */
 package kroppeb.server.command
 
+import kroppeb.server.command.reader.ReaderException
+import net.minecraft.server.MinecraftServer
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
@@ -41,6 +43,9 @@ fun loadLong(clinit: MethodVisitor, value: Float) = when (value) {
 	else -> clinit.visitLdcInsn(value)
 }
 
+@Deprecated("todo")
+fun <T> todo(msg: String): T = throw ReaderException("Todo: $msg")
 
-fun <T> todo(msg: String): T = throw NotImplementedError("Todo: $msg")
+@Deprecated("todo")
+fun getServer() = todo<MinecraftServer>("get server")
 

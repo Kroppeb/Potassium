@@ -13,6 +13,7 @@ import net.minecraft.command.arguments.NbtPathArgumentType
 import net.minecraft.command.arguments.NbtPathArgumentType.NbtPath
 import net.minecraft.command.arguments.PosArgument
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.Direction
 import java.util.*
@@ -53,6 +54,14 @@ object BlockTagPredicate: ReadFactory<Predicate<CachedBlockPosition>> {
 
 @Suppress("FunctionName")
 @ReaderDslMarker
+fun Reader.Boolean() = when(val s=Literal()){
+	"true" -> true
+	"false" -> false
+	else -> throw ReaderException("Invalid boolean `$s`")
+}
+
+@Suppress("FunctionName")
+@ReaderDslMarker
 fun Reader.Int() = readAndMove { readInt() }
 
 @Suppress("FunctionName")
@@ -63,7 +72,12 @@ fun Reader.Double() = readAndMove { readDouble() }
 @ReaderDslMarker
 fun Reader.String() = readAndMove { readString() }
 
+@Suppress("FunctionName")
 @ReaderDslMarker
 fun Reader.UUID() = try{UUID.fromString(Literal())}catch (e:IllegalAccessException){
 	throw ReaderException("Invalid uuid", e)
 }
+
+@Suppress("FunctionName")
+@ReaderDslMarker
+fun Reader.Text():Text = TODO("make a json componentreader")
