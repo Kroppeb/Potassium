@@ -6,15 +6,15 @@
  */
 package kroppeb.server.command.arguments.selector
 
-import kroppeb.server.command.arguments.DoubleRange
 import kroppeb.server.command.arguments.DoubleRange.Companion.readDoubleRange
 import kroppeb.server.command.arguments.readCompoundTag
 import kroppeb.server.command.arguments.readIntRange
+import kroppeb.server.command.arguments.selector.Sorter.Companion.parse
 import kroppeb.server.command.reader.ReadFactory
 import kroppeb.server.command.reader.Reader
 import kroppeb.server.command.reader.ReaderException
+import kroppeb.server.command.reader.read
 import net.minecraft.entity.Entity
-import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
@@ -30,18 +30,18 @@ interface Selector {
 
 	class Tagable<T>(val isTag: Boolean, val value: T)
 
-	fun getEntities(world: ServerWorld, pos: Vec3d?, executor: Entity?): Collection<Entity>
-	fun getEntities(source: ServerCommandSource): Collection<Entity?>? {
+	fun getEntities(world: ServerWorld, pos: Vec3d, executor: Entity?): Collection<Entity>
+	fun getEntities(source: ServerCommandSource): Collection<Entity> {
 		return getEntities(source.world, source.position, source.entity)
 	}
 
 	interface SingleSelector : Selector {
-		override fun getEntities(world: ServerWorld, pos: Vec3d?, executor: Entity?): Collection<Entity> {
+		override fun getEntities(world: ServerWorld, pos: Vec3d, executor: Entity?): Collection<Entity> {
 			val entity = getEntity(world, pos, executor) ?: return emptySet()
 			return setOf(entity)
 		}
 
-		fun getEntity(world: ServerWorld, pos: Vec3d?, executor: Entity?): Entity?
+		fun getEntity(world: ServerWorld, pos: Vec3d, executor: Entity?): Entity?
 		fun getEntity(source: ServerCommandSource): Entity? {
 			return getEntity(source.world, source.position, source.entity)
 		}
@@ -57,26 +57,26 @@ interface Selector {
 	}
 
 	object Self : SinglePlayerSelector {
-		override fun getPlayer(world: ServerWorld, pos: Vec3d?, executor: Entity?): ServerPlayerEntity? {
+		override fun getPlayer(world: ServerWorld, pos: Vec3d, executor: Entity?): ServerPlayerEntity? {
 			return if (executor is ServerPlayerEntity) executor else null
 		}
 	}
 
 	class SelfFiltered : SinglePlayerSelector {
-		override fun getPlayer(world: ServerWorld, pos: Vec3d?, executor: Entity?): ServerPlayerEntity? {
+		override fun getPlayer(world: ServerWorld, pos: Vec3d, executor: Entity?): ServerPlayerEntity? {
 			return null // TODO implement
 		}
 	}
 
 	class SinglePlayer : SinglePlayerSelector {
-		override fun getPlayer(world: ServerWorld, pos: Vec3d?, executor: Entity?): ServerPlayerEntity? {
+		override fun getPlayer(world: ServerWorld, pos: Vec3d, executor: Entity?): ServerPlayerEntity? {
 			return null
 			// TODO implement
 		}
 	}
 
 	object ClosestPlayer : SinglePlayerSelector {
-		override fun getPlayer(world: ServerWorld, pos: Vec3d?, executor: Entity?): ServerPlayerEntity? {
+		override fun getPlayer(world: ServerWorld, pos: Vec3d, executor: Entity?): ServerPlayerEntity? {
 			var player: ServerPlayerEntity? = null
 			var distance = Double.NEGATIVE_INFINITY
 			for (worldPlayer in world.players) {
@@ -91,46 +91,62 @@ interface Selector {
 	}
 
 	object RandomPlayer : SinglePlayerSelector {
-		override fun getPlayer(world: ServerWorld, pos: Vec3d?, executor: Entity?): ServerPlayerEntity? {
+		override fun getPlayer(world: ServerWorld, pos: Vec3d, executor: Entity?): ServerPlayerEntity? {
 			return world.randomAlivePlayer
 		}
 	}
 
 	object AllPlayers : PlayerSelector {
-		override fun getPlayers(world: ServerWorld, pos: Vec3d?, executor: Entity?): Collection<ServerPlayerEntity> {
+		override fun getPlayers(world: ServerWorld, pos: Vec3d, executor: Entity?): Collection<ServerPlayerEntity> {
 			return world.players
 		}
 	}
 
 	class PlayersFiltred : PlayerSelector {
-		override fun getPlayers(world: ServerWorld, pos: Vec3d?, executor: Entity?): Collection<ServerPlayerEntity> {
+		override fun getPlayers(world: ServerWorld, pos: Vec3d, executor: Entity?): Collection<ServerPlayerEntity> {
 			return emptySet()
 			// TODO implement
 		}
 	}
 
 	object AllEntities : Selector {
-		override fun getEntities(world: ServerWorld, pos: Vec3d?, executor: Entity?): Collection<Entity> {
+		override fun getEntities(world: ServerWorld, pos: Vec3d, executor: Entity?): Collection<Entity> {
 			return emptySet()
 			// TODO implement
 		}
 	}
 
 	class Complex : Selector {
-		override fun getEntities(world: ServerWorld, pos: Vec3d?, executor: Entity?): Collection<Entity> {
+		override fun getEntities(world: ServerWorld, pos: Vec3d, executor: Entity?): Collection<Entity> {
 			return emptySet()
 		}
 	}
 
 	companion object : ReadFactory<Selector> {
-		@Throws(ReaderException::class)
 		override fun Reader.parse(): Selector {
 			readChar('@')
 			val kind = read()
 			return if (tryRead('[')) {
+				val sb = SelectorBuilder()
 				when (kind) {
+					's' -> sb.onlySelf = true
+					'a' -> sb.onlyPlayers = true
+					'e' -> {}
+					'p' -> {
+						sb.onlyPlayers = true
+						sb.onlyOne = true
+						sb.setLimit(1)
+						sb.setSort(Sorter.NEAREST)
+					}
+					'r' -> {
+						sb.onlyPlayers = true
+						sb.onlyOne = true
+						sb.setLimit(1)
+						sb.setSort(Sorter.RANDOM)
+					}
+					else -> throw ReaderException("Unknown selector: @$kind")
 				}
-				readBuilder()
+				readBuilder(sb)
 				throw ReaderException("Selector parsing isn't implemented")
 			} else {
 				when (kind) {
@@ -144,9 +160,7 @@ interface Selector {
 			}
 		}
 
-		@Throws(ReaderException::class)
-		fun Reader.readBuilder(): SelectorBuilder? {
-			val sb = SelectorBuilder()
+		fun Reader.readBuilder(sb : SelectorBuilder): SelectorBuilder {
 			while (!tryRead(']')) {
 				val option = readUnquotedString()
 				next()
@@ -265,7 +279,7 @@ interface Selector {
 							if (c == '{') i++
 						}
 					}
-					"sort" -> sb.setSort(readUnquotedString())
+					"sort" -> sb.setSort(read(Sorter))
 					else -> throw ReaderException("unknown selector option: $option")
 				}
 				next()

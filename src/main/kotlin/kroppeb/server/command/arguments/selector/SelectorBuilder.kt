@@ -99,7 +99,7 @@ class SelectorBuilder {
 	}
 
 	@Throws(ReaderException::class)
-	fun setSort(sort: String) {
+	fun setSort(sort: Sorter) {
 		assertSingle(this.sort, "sort")
 		this.sort = sort
 	}
@@ -148,7 +148,7 @@ class SelectorBuilder {
 	private var scores: Map<String, IntRange>? = null
 	var team: Selector.Group<String>? = null
 	private var limit: Int? = null
-	private var sort: String? = null
+	private var sort: Sorter? = null
 	private var level: IntRange? = null
 	var gamemode: Selector.Group<String>? = null
 	var name: Selector.Group<String>? = null
@@ -163,6 +163,7 @@ class SelectorBuilder {
 	var predicate: Selector.Group<Identifier>? = null
 	var onlyPlayers = false
 	var onlyOne = false
+	var onlySelf = false
 	// TODO save order.
 
 	val result: MutableList<Predicate<Entity>> = mutableListOf()

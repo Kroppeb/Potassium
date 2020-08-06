@@ -81,3 +81,6 @@ fun Reader.UUID() = try{UUID.fromString(Literal())}catch (e:IllegalAccessExcepti
 @Suppress("FunctionName")
 @ReaderDslMarker
 fun Reader.Text():Text = TODO("make a json componentreader")
+
+
+fun <T>Reader.read(factory: ReadFactory<T>) : T = factory.read(this)

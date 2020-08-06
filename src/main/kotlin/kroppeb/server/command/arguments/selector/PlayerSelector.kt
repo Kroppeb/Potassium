@@ -18,11 +18,11 @@ import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.Vec3d
 
 interface PlayerSelector : Selector {
-	override fun getEntities(world: ServerWorld, pos: Vec3d?, executor: Entity?): Collection<Entity> {
+	override fun getEntities(world: ServerWorld, pos: Vec3d, executor: Entity?): Collection<Entity> {
 		return getPlayers(world, pos, executor)
 	}
 
-	fun getPlayers(world: ServerWorld, pos: Vec3d?, executor: Entity?): Collection<ServerPlayerEntity>
+	fun getPlayers(world: ServerWorld, pos: Vec3d, executor: Entity?): Collection<ServerPlayerEntity>
 	fun getPlayers(source: ServerCommandSource): Collection<ServerPlayerEntity> {
 		return getPlayers(source.world, source.position, source.entity)
 	}
