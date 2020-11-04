@@ -9,6 +9,7 @@ package kroppeb.server.command.reader
 
 import kroppeb.server.command.arguments.*
 import net.minecraft.block.pattern.CachedBlockPosition
+import net.minecraft.command.arguments.BlockPredicateArgumentType
 import net.minecraft.command.arguments.NbtPathArgumentType
 import net.minecraft.command.arguments.NbtPathArgumentType.NbtPath
 import net.minecraft.command.arguments.PosArgument
@@ -16,6 +17,7 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.Direction
+import net.minecraft.util.registry.Registry
 import java.util.*
 import java.util.function.Predicate
 
@@ -44,13 +46,14 @@ object Pos: ReadFactory<PosArgument> {
 	override fun Reader.parse(): PosArgument = readPos()
 }
 
-object BlockPredicate: ReadFactory<Predicate<CachedBlockPosition>> {
-	override fun Reader.parse(): Predicate<CachedBlockPosition> = readBlockPredicate(false)
+object BlockPredicate: ReadFactory<BlockPredicateArgumentType.StatePredicate> {
+	override fun Reader.parse(): BlockPredicateArgumentType.StatePredicate = readBlockPredicate(false) as BlockPredicateArgumentType.StatePredicate
 }
 
 object BlockTagPredicate: ReadFactory<Predicate<CachedBlockPosition>> {
 	override fun Reader.parse(): Predicate<CachedBlockPosition> = readBlockPredicate(true)
 }
+
 
 @Suppress("FunctionName")
 @ReaderDslMarker
@@ -77,6 +80,14 @@ fun Reader.String() = readAndMove { readString() }
 fun Reader.UUID() = try{UUID.fromString(Literal())}catch (e:IllegalAccessException){
 	throw ReaderException("Invalid uuid", e)
 }
+
+@Suppress("FunctionName")
+@ReaderDslMarker
+fun Reader.Block() = Id().let{ Registry.BLOCK.getOrEmpty(it).orElse(null)?:throw ReaderException("unknown block: $it") }
+
+@Suppress("FunctionName")
+@ReaderDslMarker
+fun Reader.BlockState() = readAndMove { readBlock() }
 
 @Suppress("FunctionName")
 @ReaderDslMarker
