@@ -83,6 +83,10 @@ fun Reader.Double() = readAndMove { readDouble() }
 
 @Suppress("FunctionName")
 @ReaderDslMarker
+fun Reader.Float() = readAndMove { readDouble() }.toFloat()
+
+@Suppress("FunctionName")
+@ReaderDslMarker
 fun Reader.String() = readAndMove { readString() }
 
 @Suppress("FunctionName")

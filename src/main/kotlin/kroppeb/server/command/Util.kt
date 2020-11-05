@@ -6,14 +6,10 @@
  */
 package kroppeb.server.command
 
-import kroppeb.server.command.reader.BlockPredicate
 import kroppeb.server.command.reader.ReaderException
-import net.minecraft.block.Block
-import net.minecraft.block.BlockState
-import net.minecraft.block.pattern.CachedBlockPosition
-import net.minecraft.command.arguments.BlockPredicateArgumentType
+import net.minecraft.command.arguments.ItemPredicateArgumentType
+import net.minecraft.command.arguments.ItemStackArgument
 import net.minecraft.command.arguments.PosArgument
-import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.world.ServerWorld
@@ -69,4 +65,8 @@ fun PosArgument.toLoadedBlockPosition(source: ServerCommandSource): BlockPos? {
 		!ServerWorld.method_24794(blockPos) -> null // TODO: should i throw?
 		else -> blockPos
 	}
+}
+
+fun ItemPredicateArgumentType.ItemPredicate.toItemStackArgument(): ItemStackArgument {
+	return ItemStackArgument(this.item, this.compound)
 }

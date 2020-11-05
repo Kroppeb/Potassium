@@ -40,3 +40,9 @@ accessible	class	net/minecraft/server/command/AdvancementCommand$Operation
 accessible	class	net/minecraft/server/command/AdvancementCommand$Selection
 accessible	method	net/minecraft/server/command/AdvancementCommand	select	(Lnet/minecraft/advancement/Advancement;Lnet/minecraft/server/command/AdvancementCommand$Selection;)Ljava/util/List;
 accessible	method	net/minecraft/server/command/AdvancementCommand$Operation	processEachCriterion	(Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/advancement/Advancement;Ljava/lang/String;)Z
+
+
+accessible	field	net/minecraft/command/arguments/ItemSlotArgumentType	slotNamesToSlotCommandId	Ljava/util/Map;
+
+accessible	field	net/minecraft/command/arguments/ItemPredicateArgumentType$ItemPredicate	item	Lnet/minecraft/item/Item;
+accessible	field	net/minecraft/command/arguments/ItemPredicateArgumentType$ItemPredicate	compound	Lnet/minecraft/nbt/CompoundTag;
