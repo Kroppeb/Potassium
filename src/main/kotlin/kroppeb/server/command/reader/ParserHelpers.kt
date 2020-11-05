@@ -10,9 +10,11 @@ package kroppeb.server.command.reader
 import kroppeb.server.command.arguments.*
 import net.minecraft.block.pattern.CachedBlockPosition
 import net.minecraft.command.arguments.BlockPredicateArgumentType
+import net.minecraft.command.arguments.ItemPredicateArgumentType
 import net.minecraft.command.arguments.NbtPathArgumentType
 import net.minecraft.command.arguments.NbtPathArgumentType.NbtPath
 import net.minecraft.command.arguments.PosArgument
+import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
@@ -52,6 +54,14 @@ object BlockPredicate: ReadFactory<BlockPredicateArgumentType.StatePredicate> {
 
 object BlockTagPredicate: ReadFactory<Predicate<CachedBlockPosition>> {
 	override fun Reader.parse(): Predicate<CachedBlockPosition> = readBlockPredicate(true)
+}
+
+object ItemPredicate: ReadFactory<ItemPredicateArgumentType.ItemPredicate> {
+	override fun Reader.parse(): ItemPredicateArgumentType.ItemPredicate = readItemPredicate(false) as ItemPredicateArgumentType.ItemPredicate
+}
+
+object ItemTagPredicate: ReadFactory<Predicate<ItemStack>> {
+	override fun Reader.parse(): Predicate<ItemStack> = readItemPredicate(true)
 }
 
 

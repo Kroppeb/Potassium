@@ -6,7 +6,6 @@
  */
 package kroppeb.server.command
 
-import kroppeb.server.command.arguments.SetBlockCommand
 import kroppeb.server.command.commands.*
 import kroppeb.server.command.reader.Reader
 import kroppeb.server.command.reader.ReaderException
@@ -26,6 +25,7 @@ object Parser {
 			"advancement" -> AdvancementCommand.read(reader)
 			"attribute" -> AttributeCommand.read(reader)
 			"bossbar" -> BossBarCommand.read(reader)
+			"clear" -> ClearCommand.read(reader)
 			"data" -> DataCommand.read(reader)
 			"execute" -> ExecuteCommand.read(reader)
 			"function" -> FunctionCommand.read(reader)
