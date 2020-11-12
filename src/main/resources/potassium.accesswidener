@@ -46,3 +46,6 @@ accessible	field	net/minecraft/command/arguments/ItemSlotArgumentType	slotNamesT
 
 accessible	field	net/minecraft/command/arguments/ItemPredicateArgumentType$ItemPredicate	item	Lnet/minecraft/item/Item;
 accessible	field	net/minecraft/command/arguments/ItemPredicateArgumentType$ItemPredicate	compound	Lnet/minecraft/nbt/CompoundTag;
+
+accessible	field	net/minecraft/text/Text$Serializer	GSON	Lcom/google/gson/Gson;
+accessible	method	net/minecraft/text/Text$Serializer	getPosition	(Lcom/google/gson/stream/JsonReader;)I

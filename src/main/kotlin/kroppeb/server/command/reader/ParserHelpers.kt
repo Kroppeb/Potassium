@@ -64,6 +64,13 @@ object ItemTagPredicate: ReadFactory<Predicate<ItemStack>> {
 	override fun Reader.parse(): Predicate<ItemStack> = readItemPredicate(true)
 }
 
+object Scoreboard: ReadFactory<String> {
+	override fun Reader.parse(): String {
+		val scoreboard = readUnquotedString()
+		if (scoreboard.length > 16) throw ReaderException("scoreboard name too long")
+		return scoreboard
+	}
+}
 
 @Suppress("FunctionName")
 @ReaderDslMarker
@@ -105,7 +112,10 @@ fun Reader.BlockState() = readAndMove { readBlock() }
 
 @Suppress("FunctionName")
 @ReaderDslMarker
-fun Reader.Text():Text = TODO("make a json componentreader")
+inline fun <reified T> Reader.JSON() = readAndMove { readJson<T>() }
 
+@Suppress("FunctionName")
+@ReaderDslMarker
+fun Reader.Text() = JSON<Text>()
 
 fun <T>Reader.read(factory: ReadFactory<T>) : T = factory.read(this)

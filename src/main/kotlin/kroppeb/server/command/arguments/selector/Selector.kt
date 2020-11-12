@@ -146,8 +146,7 @@ interface Selector {
 					}
 					else -> throw ReaderException("Unknown selector: @$kind")
 				}
-				readBuilder(sb)
-				throw ReaderException("Selector parsing isn't implemented")
+				readBuilder(sb).build()
 			} else {
 				when (kind) {
 					's' -> Self

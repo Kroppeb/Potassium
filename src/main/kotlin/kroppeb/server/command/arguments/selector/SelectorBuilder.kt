@@ -136,6 +136,11 @@ class SelectorBuilder {
 		this.advancements = advancements
 	}
 
+	fun build(): Selector {
+		// TODO build
+		return Selector.Self;
+	}
+
 	//endregion
 	//region properties
 	private var x: Double? = null
@@ -158,6 +163,8 @@ class SelectorBuilder {
 	var tag: Selector.Group<String>? = null
 	var nbt: Selector.Group<CompoundTag>? = null
 	private var advancements: String? = null
+
+
 	//endregion
 
 	var predicate: Selector.Group<Identifier>? = null

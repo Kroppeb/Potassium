@@ -10,31 +10,31 @@ import kroppeb.server.command.reader.ReadFactory
 import kroppeb.server.command.reader.Reader
 import kroppeb.server.command.reader.ReaderException
 import net.minecraft.entity.Entity
+import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.Vec3d
 
 abstract class ScoreComparator {
-	abstract fun compareTo(other: Score, world: ServerWorld?, pos: Vec3d?, entity: Entity?): Boolean
-	class ScoreScore(val score: Score, val comparator: IntComparator) : ScoreComparator() {
-		override fun compareTo(other: Score, world: ServerWorld?, pos: Vec3d?, entity: Entity?): Boolean {
+	abstract fun compareTo(other: SingleScore, source:ServerCommandSource): Boolean
+	class ScoreScore(val score: SingleScore, val comparator: IntComparator) : ScoreComparator() {
+		override fun compareTo(other: SingleScore, source:ServerCommandSource): Boolean {
 			return comparator.compare(
-					other.getValue(world, pos, entity),
-					score.getValue(world, pos, entity)
+					other.getValue(source),
+					score.getValue(source)
 			)
 		}
 
 	}
 
 	class ScoreMatches(val min: Int, val max: Int) : ScoreComparator() {
-		override fun compareTo(other: Score, world: ServerWorld?, pos: Vec3d?, entity: Entity?): Boolean {
-			val value = other.getValue(world, pos, entity)
+		override fun compareTo(other: SingleScore, source:ServerCommandSource): Boolean {
+			val value = other.getValue(source)
 			return value in min..max
 		}
 
 	}
 
 	companion object : ReadFactory<ScoreComparator>{
-		@Throws(ReaderException::class)
 		override fun Reader.parse(): ScoreComparator {
 			return if (tryReadLiteral("matches")) {
 				if (tryRead('.')) {
@@ -50,7 +50,7 @@ abstract class ScoreComparator {
 			} else {
 				val comparator: IntComparator = IntComparator.read(this)
 				moveNext()
-				val score: Score = Score.read(this)
+				val score = SingleScore.read(this)
 				ScoreScore(score, comparator)
 			}
 		}

@@ -12,6 +12,7 @@ import kroppeb.server.command.*
 import kroppeb.server.command.arguments.Score
 import kroppeb.server.command.arguments.ScoreComparator
 import kroppeb.server.command.arguments.ScoreHolder
+import kroppeb.server.command.arguments.SingleScore
 import kroppeb.server.command.arguments.selector.Selector
 import kroppeb.server.command.arguments.selector.Selector.SingleSelector
 import kroppeb.server.command.reader.*
@@ -36,6 +37,7 @@ import net.minecraft.util.registry.RegistryKey
 import org.apache.commons.lang3.NotImplementedException
 import java.util.*
 import java.util.function.Predicate
+
 
 class ExecuteCommand : Command {
 	private lateinit var output: CommandOutput
@@ -133,7 +135,7 @@ class ExecuteCommand : Command {
 		return when (val type = Literal()) {
 			"block" -> IfBlock(Pos(), BlockTagPredicate(), positive, tryReadConverter())
 			"entity" -> IfEntity(Selector(), positive, tryReadConverter())
-			"score" -> IfScore(Score(), ScoreComparator(), positive, tryReadConverter())
+			"score" -> IfScore(SingleScore(), ScoreComparator.invoke(), positive, tryReadConverter())
 			else -> throw ReaderException("Unknown if subcommand: $type")
 		}
 	}
@@ -562,12 +564,12 @@ class ExecuteCommand : Command {
 	}
 
 	inner class IfScore(
-		val score: Score,
+		val score: SingleScore,
 		val comparator: ScoreComparator,
 		val positive: Boolean,
 		val next: Converter?) : Converter() {
 		override fun call() {
-			if (comparator.compareTo(score, world, pos, entity) == positive) {
+			if (comparator.compareTo(score, source()) == positive) {
 				next?.call() ?: TODO("should be nullable")
 			}
 		}

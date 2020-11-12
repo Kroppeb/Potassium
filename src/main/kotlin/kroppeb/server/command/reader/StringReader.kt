@@ -6,6 +6,9 @@
  */
 package kroppeb.server.command.reader
 
+import com.google.gson.stream.JsonReader
+import net.minecraft.text.MutableText
+import net.minecraft.text.Text.Serializer.getPosition
 import net.minecraft.util.Identifier
 
 class StringReader : Reader {
@@ -60,7 +63,7 @@ class StringReader : Reader {
 	@Throws(ReaderException::class)
 	private fun eof(s: String) {
 		throw ReaderException(
-				"Expected to read $s but we are at the end of the file"
+			"Expected to read $s but we are at the end of the file"
 		)
 	}
 
@@ -78,7 +81,7 @@ class StringReader : Reader {
 	}
 
 	override fun last(): Char {
-		return line[index-1]
+		return line[index - 1]
 	}
 
 	@Throws(ReaderException::class)
@@ -86,7 +89,7 @@ class StringReader : Reader {
 		/*if(s == "whitespace")
 			error("hi: + $line + ${index+1}")*/
 		throw ReaderException(
-				"Expected to read $s"
+			"Expected to read $s"
 		)
 	}
 
@@ -227,5 +230,20 @@ class StringReader : Reader {
 			return true
 		}
 		return false
+	}
+
+	override fun <T>readJson(clazz: Class<T>): T {
+		// TODO fix json for non text class?
+		val jsonReader = JsonReader(java.io.StringReader(line))
+		jsonReader.isLenient = false
+		try {
+			val value = net.minecraft.text.Text.Serializer.GSON
+				.getAdapter(clazz)
+				.read(jsonReader)
+			skip(getPosition(jsonReader))
+			return value
+		} catch (ex : Exception){
+			throw ReaderException("invalid json", ex)
+		}
 	}
 }

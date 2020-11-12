@@ -269,7 +269,12 @@ interface Reader {
 	@ReaderDslMarker
 	operator fun <T> ReadFactory<T>.provideDelegate(thisRef: Any?, property: KProperty<*>): ItemDelegate<T> =
 		ItemDelegate(readAndMove { parse() })
+
+	fun <T>readJson(clazz: Class<T>): T
+
 }
+
+inline fun <reified T> Reader.readJson():T = readJson(T::class.java)
 
 @ReaderDslMarker
 inline fun <T> Reader.readAndMove(block: Reader.() -> T): T = block().also { moveOrEnd() }

@@ -10,6 +10,7 @@ import kroppeb.server.command.reader.ReaderException
 import net.minecraft.command.arguments.ItemPredicateArgumentType
 import net.minecraft.command.arguments.ItemStackArgument
 import net.minecraft.command.arguments.PosArgument
+import net.minecraft.scoreboard.ScoreboardObjective
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.world.ServerWorld
@@ -69,4 +70,10 @@ fun PosArgument.toLoadedBlockPosition(source: ServerCommandSource): BlockPos? {
 
 fun ItemPredicateArgumentType.ItemPredicate.toItemStackArgument(): ItemStackArgument {
 	return ItemStackArgument(this.item, this.compound)
+}
+
+fun ServerCommandSource.getScoreboard(name: String): ScoreboardObjective {
+	val scoreboard: net.minecraft.scoreboard.Scoreboard = minecraftServer.scoreboard
+	val scoreboardObjective = scoreboard.getNullableObjective(name)
+	return scoreboardObjective ?: throw InvocationError()
 }
