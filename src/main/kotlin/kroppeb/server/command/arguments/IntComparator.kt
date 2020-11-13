@@ -39,7 +39,6 @@ enum class IntComparator {
 	abstract fun compare(a: Int, b: Int): Boolean
 
 	companion object {
-		@Throws(ReaderException::class)
 		fun read(reader: Reader): IntComparator {
 			val type = reader.readUntilWhitespace()
 			return when (type) {

@@ -12,7 +12,6 @@ import kroppeb.server.command.reader.ReaderException
 class DoubleRange(val minValue: Double, val maxValue: Double) {
 
 	companion object {
-		@Throws(ReaderException::class)
 		fun Reader.readDoubleRange(): DoubleRange {
 			val minValue: Double
 			val maxValue: Double

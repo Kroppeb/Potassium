@@ -37,7 +37,6 @@ interface SinglePlayerSelector : Selector.SingleSelector, PlayerSelector {
 	}
 
 	companion object {
-		@Throws(ReaderException::class)
 		fun Reader.readSinglePlayerSelector(): SinglePlayerSelector {
 			val selector = parse()
 			if (selector is SinglePlayerSelector) return selector

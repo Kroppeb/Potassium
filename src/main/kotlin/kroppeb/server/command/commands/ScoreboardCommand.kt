@@ -96,7 +96,6 @@ sealed class ScoreboardCommand : Command {
 		}
 
 		class Set(private val score: Score, private val value: Int) : PlayerCommand() {
-			@Throws(InvocationError::class)
 			override fun execute(source: ServerCommandSource): Int {
 				return score.setValue(source, value)
 			}
@@ -104,7 +103,6 @@ sealed class ScoreboardCommand : Command {
 		}
 
 		class Reset(private val score: Score) : PlayerCommand() {
-			@Throws(InvocationError::class)
 			override fun execute(source: ServerCommandSource): Int {
 				return score.resetValue(source)
 			}
@@ -186,7 +184,6 @@ sealed class ScoreboardCommand : Command {
 			}
 
 			companion object : ReadFactory<Operation> {
-				@Throws(ReaderException::class)
 				override fun Reader.parse(): Operation {
 					val target = Score()
 					val op: Op = when (val opString = Literal()) {
@@ -210,7 +207,6 @@ sealed class ScoreboardCommand : Command {
 	}
 
 	companion object : ReadFactory<ScoreboardCommand> {
-		@Throws(ReaderException::class)
 		override fun Reader.parse(): ScoreboardCommand {
 			return when (val sub = Literal()) {
 				"objectives" -> this.readObjective()
@@ -219,7 +215,6 @@ sealed class ScoreboardCommand : Command {
 			}
 		}
 
-		@Throws(ReaderException::class)
 		private fun Reader.readObjective(): ObjectiveCommand {
 			when (val sub: String = Literal()) {
 				"list" -> {
@@ -273,7 +268,6 @@ sealed class ScoreboardCommand : Command {
 		}
 
 
-		@Throws(ReaderException::class)
 		private fun Reader.readPlayer(): ScoreboardCommand {
 			return when (val sub = Literal()) {
 				"list" -> throw ReaderException("scoreboard players list isn't supported here atm, I'm lazy *cries*") // TODO

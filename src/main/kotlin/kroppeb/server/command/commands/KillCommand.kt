@@ -15,7 +15,6 @@ import kroppeb.server.command.reader.ReaderException
 import net.minecraft.server.command.ServerCommandSource
 
 class KillCommand(val targets: Selector) : Command {
-	@Throws(InvocationError::class)
 	override fun execute(source: ServerCommandSource): Int {
 		val entities = targets.getEntities(source)
 		for (entity in entities!!) {
@@ -27,7 +26,6 @@ class KillCommand(val targets: Selector) : Command {
 	}
 
 	companion object : ReadFactory<KillCommand> {
-		@Throws(ReaderException::class)
 		override fun Reader.parse(): KillCommand {
 			return KillCommand(Selector())
 		}

@@ -19,7 +19,6 @@ import net.minecraft.server.command.ServerCommandSource
 
 abstract class TagCommand : Command {
 	class Add(val targets: Selector, val name: String?) : TagCommand() {
-		@Throws(InvocationError::class)
 		override fun execute(source: ServerCommandSource): Int {
 			var count = 0
 			val entities = targets.getEntities(source)
@@ -33,7 +32,6 @@ abstract class TagCommand : Command {
 	}
 
 	class List(val targets: Selector) : TagCommand() {
-		@Throws(InvocationError::class)
 		override fun execute(source: ServerCommandSource): Int {
 			val entities = targets.getEntities(source)
 			if (entities!!.isEmpty()) throw InvocationError()
@@ -47,7 +45,6 @@ abstract class TagCommand : Command {
 	}
 
 	class Remove(val targets: Selector, val name: String?) : TagCommand() {
-		@Throws(InvocationError::class)
 		override fun execute(source: ServerCommandSource): Int {
 			val entities = targets.getEntities(source)
 			if (entities!!.isEmpty()) throw InvocationError()
@@ -61,7 +58,6 @@ abstract class TagCommand : Command {
 	}
 
 	companion object:ReadFactory<TagCommand> {
-		@Throws(ReaderException::class)
 		override fun Reader.parse(): TagCommand {
 			val targets = Selector()
 			return when (val sub = Literal()) {

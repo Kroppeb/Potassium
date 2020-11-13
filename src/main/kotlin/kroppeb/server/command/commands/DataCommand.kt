@@ -25,7 +25,6 @@ abstract class DataCommand protected constructor(val target: NbtDataContainer) :
 	class Get(target: NbtDataContainer, path: NbtPath?, val scale: Double?) : DataCommand(target) {
 		val dataSource: NbtDataPathSource = NbtDataPathSource(target, path)
 
-		@Throws(InvocationError::class)
 		override fun execute(source: ServerCommandSource): Int {
 			if (dataSource.path == null) {
 				target.getTag(source)
@@ -50,7 +49,6 @@ abstract class DataCommand protected constructor(val target: NbtDataContainer) :
 	}
 
 	class Merge(target: NbtDataContainer, val tag: CompoundTag) : DataCommand(target) {
-		@Throws(InvocationError::class)
 		override fun execute(source: ServerCommandSource): Int {
 			val data = target.getTag(source)
 			val result = data.copy().copyFrom(tag)
@@ -62,7 +60,6 @@ abstract class DataCommand protected constructor(val target: NbtDataContainer) :
 	}
 
 	class Remove(target: NbtDataContainer, val path: NbtPath) : DataCommand(target) {
-		@Throws(InvocationError::class)
 		override fun execute(source: ServerCommandSource): Int {
 			val data = target.getTag(source)
 
@@ -118,7 +115,6 @@ abstract class DataCommand protected constructor(val target: NbtDataContainer) :
 				target,
 				path,
 				source) {
-			@Throws(InvocationError::class)
 			override fun execute(source: ServerCommandSource): Int {
 				val tag = target.getTag(source)
 				val last = Iterables.getLast(this.source!!.getData(source))
@@ -136,7 +132,6 @@ abstract class DataCommand protected constructor(val target: NbtDataContainer) :
 				target,
 				path,
 				source) {
-			@Throws(InvocationError::class)
 			override fun execute(source: ServerCommandSource): Int {
 				val tags: List<Tag>
 				val result = target.getTag(source)
@@ -170,7 +165,6 @@ abstract class DataCommand protected constructor(val target: NbtDataContainer) :
 		}
 
 		companion object {
-			@Throws(InvocationError::class)
 			fun insert(integer: Int, sourceTag: CompoundTag?, path: NbtPath?, tags: List<Tag?>?): Int {
 				// I was too lazy to copy
 				return try {
@@ -188,7 +182,6 @@ abstract class DataCommand protected constructor(val target: NbtDataContainer) :
 	}
 
 	companion object : ReadFactory<DataCommand> {
-		@Throws(ReaderException::class)
 		override fun Reader.parse(): DataCommand {
 			return when (val type = Literal()) {
 				"get" -> {

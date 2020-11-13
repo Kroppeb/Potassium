@@ -127,14 +127,12 @@ sealed class AttributeCommand(val target: Selector.SingleSelector, val attribute
 	}
 
 
-	@Throws(CommandSyntaxException::class)
 	protected fun getAttributeInstance(source: ServerCommandSource): EntityAttributeInstance {
 		val entity = target.getEntity(source)
 		if(entity !is LivingEntity) throw InvocationError()
 		return entity.attributes.getCustomInstance(attribute) ?: throw InvocationError()
 	}
 
-	@Throws(CommandSyntaxException::class)
 	protected fun getLivingEntityWithAttribute(source: ServerCommandSource): LivingEntity {
 		val entity = target.getEntity(source)
 		if(entity !is LivingEntity) throw InvocationError()

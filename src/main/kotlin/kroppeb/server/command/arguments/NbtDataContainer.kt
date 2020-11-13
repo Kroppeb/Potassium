@@ -65,7 +65,6 @@ interface NbtDataContainer {
 	}
 	@ReaderDslMarker
 	companion object: ReadFactory<NbtDataContainer> {
-		@Throws(ReaderException::class)
 		/* TODO we are an arg so the last call can't be a invoke but should be a read. Maybe make this easier to notice
 		    or make it cache the fact we read a space last.
 		* */

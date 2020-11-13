@@ -47,7 +47,6 @@ class StringReader : Reader {
 		return index < line.length
 	}
 
-	@Throws(ReaderException::class)
 	override fun read(): Char {
 		if (!canRead()) eof("further")
 		val c = peek()
@@ -55,12 +54,10 @@ class StringReader : Reader {
 		return c
 	}
 
-	@Throws(ReaderException::class)
 	private fun eof(c: Char) {
 		eof("'$c'")
 	}
 
-	@Throws(ReaderException::class)
 	private fun eof(s: String) {
 		throw ReaderException(
 			"Expected to read $s but we are at the end of the file"
@@ -71,7 +68,6 @@ class StringReader : Reader {
 	 * skips whitespace
 	 * else throws
 	 */
-	@Throws(ReaderException::class)
 	override fun moveNext() {
 		if (isWhiteSpace) {
 			do {
@@ -84,7 +80,6 @@ class StringReader : Reader {
 		return line[index - 1]
 	}
 
-	@Throws(ReaderException::class)
 	private fun expected(s: String) {
 		/*if(s == "whitespace")
 			error("hi: + $line + ${index+1}")*/
@@ -101,7 +96,6 @@ class StringReader : Reader {
 	 * Read until "special" character
 	 * Forbidden chars = any whitespace, EOL, '=' ':' '"' '\''
 	 */
-	@Throws(ReaderException::class)
 	override fun readWord(): String {
 		if (endWord(peek())) expected("word")
 		val pos = index
@@ -111,7 +105,6 @@ class StringReader : Reader {
 		return line!!.substring(pos, index)
 	}
 
-	@Throws(ReaderException::class)
 	override fun readUntilWhitespace(): String {
 		val start = index
 		return if (!isWhiteSpace) {
@@ -126,7 +119,6 @@ class StringReader : Reader {
 		return isWhiteSpace(c) || c == '\n' || c == '\r' || c == '=' || c == ':' || c == '"' || c == '\''
 	}
 
-	@Throws(ReaderException::class)
 	override fun readChar(c: Char) {
 		if (read() != c) expected("'$c'")
 	}
@@ -136,12 +128,10 @@ class StringReader : Reader {
 	 *
 	 * @return
 	 */
-	@Throws(ReaderException::class)
 	override fun readString(): String {
 		return if (isQuotedStringStart) readQuotedString() else readUnquotedString()
 	}
 
-	@Throws(ReaderException::class)
 	override fun readQuotedString(): String {
 		if (!isQuotedStringStart) expected("quote")
 		val pos = index + 1
@@ -154,7 +144,6 @@ class StringReader : Reader {
 		return line.substring(pos, index - 1)
 	}
 
-	@Throws(ReaderException::class)
 	override fun readUnquotedString(): String {
 		if (!isAllowedInUnquotedString) expected("unquoted string")
 		val pos = index
@@ -162,7 +151,6 @@ class StringReader : Reader {
 		return line.substring(pos, index)
 	}
 
-	@Throws(ReaderException::class)
 	override fun readIdentifier(): Identifier {
 		if (!isAllowedInIdentifier) expected("identifier")
 		val pos = index
@@ -171,7 +159,6 @@ class StringReader : Reader {
 		return Identifier.tryParse(str) ?: throw ReaderException("Couldn't parse $str as an identifier")
 	}
 
-	@Throws(ReaderException::class)
 	override fun readNamedPath(): String {
 		if (!isAllowedInNamedPath) expected("identifier")
 		val pos = index
@@ -179,7 +166,6 @@ class StringReader : Reader {
 		return line.substring(pos, index)
 	}
 
-	@Throws(ReaderException::class)
 	override fun readLine(): String {
 		if (!canRead()) eof("more text")
 		val s = line.substring(index)
@@ -187,13 +173,11 @@ class StringReader : Reader {
 		return s
 	}
 
-	@Throws(ReaderException::class)
 	override fun endLine() {
 		if (canRead()) expected("end of line")
 		index = line.length
 	}
 
-	@Throws(ReaderException::class)
 	override fun readNumber(): String? {
 		var c = peek()
 		val start = index

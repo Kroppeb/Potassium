@@ -57,7 +57,6 @@ abstract class NbtDataSource {
 
 	@ReaderDslMarker
 	companion object : ReadFactory<NbtDataSource> {
-		@Throws(ReaderException::class)
 		override fun Reader.parse(): NbtDataSource {
 			return when (val type = Literal()) {
 				"value" -> Constant(readTag())

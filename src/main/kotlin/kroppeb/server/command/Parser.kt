@@ -17,7 +17,6 @@ import java.nio.file.Path
 import java.util.*
 
 object Parser {
-	@Throws(ReaderException::class)
 	fun readFunction(reader: Reader): Command {
 		val result: Command
 		val command = reader.readLiteral()
@@ -43,7 +42,6 @@ object Parser {
 		return result
 	}
 
-	@Throws(ReaderException::class)
 	fun readFile(file: List<String>): List<Command> {
 		val cmds: MutableList<Command> = ArrayList()
 		val errors: MutableList<String> = ArrayList()
@@ -64,7 +62,6 @@ object Parser {
 		throw ReaderException(java.lang.String.join("\n", errors))
 	}
 
-	@Throws(IOException::class, ReaderException::class)
 	fun readFile(file: Path): List<Command> {
 		return readFile(Files.readAllLines(file, StandardCharsets.UTF_8))
 	}

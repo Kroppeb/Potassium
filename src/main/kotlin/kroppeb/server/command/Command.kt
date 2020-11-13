@@ -13,7 +13,6 @@ import net.minecraft.server.command.ServerCommandSource
 
 @FunctionalInterface
 interface Command : Command<ServerCommandSource> {
-	@Throws(CommandSyntaxException::class)
 	override fun run(context: CommandContext<ServerCommandSource>): Int {
 		return try {
 			execute(context.source)
@@ -22,7 +21,6 @@ interface Command : Command<ServerCommandSource> {
 		}
 	}
 
-	@Throws(InvocationError::class)
 	fun execute(source: ServerCommandSource): Int
 	fun executeVoid(source: ServerCommandSource) {
 		try {

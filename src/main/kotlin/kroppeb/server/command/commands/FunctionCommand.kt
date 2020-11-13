@@ -16,19 +16,17 @@ import kroppeb.server.command.reader.ReaderException
 import net.minecraft.server.command.ServerCommandSource
 
 class FunctionCommand(val resource: Resource) : Command {
-	var function: Command? = null
+	lateinit var function: Command
 
-	@Throws(InvocationError::class)
 	override fun execute(source: ServerCommandSource): Int {
-		return function!!.execute(source)
+		return function.execute(source)
 	}
 
 	fun build() {
-		function = CommandLoader.functions[resource.toString()]
+		function = CommandLoader.functions[resource.toString()]?:throw RuntimeException("Missing function: $resource")
 	}
 
 	companion object:ReadFactory<FunctionCommand> {
-		@Throws(ReaderException::class)
 		override fun Reader.parse(): FunctionCommand {
 			return FunctionCommand(Resource())
 		}

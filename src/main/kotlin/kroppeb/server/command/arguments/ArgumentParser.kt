@@ -26,7 +26,6 @@ import java.util.function.Predicate
 
 
 //region tag
-@Throws(ReaderException::class)
 fun Reader.readCompoundTag(): CompoundTag {
 	val tag = CompoundTag()
 	readChar('{')
@@ -45,7 +44,6 @@ fun Reader.readCompoundTag(): CompoundTag {
 	return tag
 }
 
-@Throws(ReaderException::class)
 fun Reader.readTag(): Tag {
 	return when (peek()) {
 		'{' -> readCompoundTag()
@@ -54,7 +52,6 @@ fun Reader.readTag(): Tag {
 	}
 }
 
-@Throws(ReaderException::class)
 fun Reader.readListTag(): ListTag {
 	readChar('[')
 	val list = ListTag()
@@ -79,7 +76,6 @@ fun Reader.readListTag(): ListTag {
 	return list
 }
 
-@Throws(ReaderException::class)
 fun Reader.readPrimitiveTag(): Tag {
 	if (isQuotedStringStart) return StringTag.of(readQuotedString())
 	val s = readUnquotedString()
@@ -130,7 +126,6 @@ fun Reader.readPrimitiveTag(): Tag {
 
 //endregion tag
 //region pos
-@Throws(ReaderException::class)
 fun Reader.readPos(): PosArgument {
 	return if (peek() == '^') {
 		val x = this.readLookingCoordinate()
@@ -149,7 +144,6 @@ fun Reader.readPos(): PosArgument {
 	}
 }
 
-@Throws(ReaderException::class)
 private fun Reader.readCoordinateArgument(): CoordinateArgument {
 	return if (tryRead('~')) {
 		if (canRead() && peek() != ' ') CoordinateArgument(true, readDouble()) else CoordinateArgument(true, 0.0)
@@ -158,7 +152,6 @@ private fun Reader.readCoordinateArgument(): CoordinateArgument {
 	}
 }
 
-@Throws(ReaderException::class)
 private fun Reader.readLookingCoordinate(): Double {
 	readChar('^')
 	return if (canRead() && peek() != ' ') readDouble() else 0.0
@@ -166,7 +159,6 @@ private fun Reader.readLookingCoordinate(): Double {
 
 //endregion
 //region block
-@Throws(ReaderException::class)
 fun Reader.readBlockPredicate(allowTags: Boolean): Predicate<CachedBlockPosition> {
 	return if (tryRead('#')) {
 		if (!allowTags) throw ReaderException("Tags are not allowed here")
@@ -201,7 +193,6 @@ fun Reader.readBlockPredicate(allowTags: Boolean): Predicate<CachedBlockPosition
 	}
 }
 
-@Throws(ReaderException::class)
 fun Reader.readBlock(): BlockStateArgument {
 	val block = this.readBlockId()
 	var state = block.defaultState
@@ -228,13 +219,11 @@ private fun <T : Comparable<T>> addProperty(
 	return state.with(entry.key as Property<T>, entry.value as T)
 }
 
-@Throws(ReaderException::class)
 fun Reader.readBlockId(): Block {
 	val id = readIdentifier()
 	return Registry.BLOCK.getOrEmpty(id).orElseThrow { ReaderException("unknown block: $id") }
 }
 
-@Throws(ReaderException::class)
 fun Reader.readBlockProperties(block: Block): Map<Property<*>, Comparable<*>> {
 	val stateFactory = block.stateManager
 	val properties: MutableMap<Property<*>, Comparable<*>> = HashMap()
@@ -260,7 +249,6 @@ fun Reader.readBlockProperties(block: Block): Map<Property<*>, Comparable<*>> {
 	return properties
 }
 
-@Throws(ReaderException::class)
 fun Reader.readBlockTagProperties(): Map<String?, String?> {
 	val properties: MutableMap<String?, String?> = HashMap()
 	while (true) {
@@ -281,7 +269,6 @@ fun Reader.readBlockTagProperties(): Map<String?, String?> {
 
 //endregion
 //region swizzle
-@Throws(ReaderException::class)
 fun Reader.readSwizzle(): EnumSet<Direction.Axis?> {
 	val s = readUntilWhitespace()
 	val axes = EnumSet.noneOf(Direction.Axis::class.java)
@@ -299,7 +286,6 @@ fun Reader.readSwizzle(): EnumSet<Direction.Axis?> {
 
 //endregion
 //region item
-@Throws(ReaderException::class)
 fun Reader.readItemPredicate(allowTags: Boolean): Predicate<ItemStack> {
 	return if (tryRead('#')) {
 		if (!allowTags) throw ReaderException("Tags are not allowed here")
@@ -320,7 +306,6 @@ fun Reader.readItemPredicate(allowTags: Boolean): Predicate<ItemStack> {
 	}
 }
 
-@Throws(ReaderException::class)
 fun Reader.readItemStack(): ItemStack {
 	val item = ItemStack(this.readItemId())
 	if (canRead() && peek() == '{') {
@@ -329,13 +314,11 @@ fun Reader.readItemStack(): ItemStack {
 	return item
 }
 
-@Throws(ReaderException::class)
 fun Reader.readItemId(): Item {
 	val id = readIdentifier()
 	return Registry.ITEM.getOrEmpty(id).orElseThrow { ReaderException("unknown block: $id") }
 }
 
-@Throws(ReaderException::class)
 fun Reader.readPath(): NbtPath {
 	val list: MutableList<PathNode> = Lists.newArrayList()
 	var bl = true
@@ -358,7 +341,6 @@ fun Reader.readPath(): NbtPath {
 			null) // TODO: will cause NPE on error instead of CommandError
 }
 
-@Throws(ReaderException::class)
 private fun Reader.parseNode(root: Boolean): PathNode {
 	val string: String
 	return when (peek()) {
@@ -400,7 +382,6 @@ private fun Reader.parseNode(root: Boolean): PathNode {
 	}
 }
 
-@Throws(ReaderException::class)
 private fun Reader.readCompoundChildNode(name: String): PathNode {
 	return if (canRead() && peek() == '{') {
 		val compoundTag = readCompoundTag()
@@ -412,7 +393,6 @@ private fun Reader.readCompoundChildNode(name: String): PathNode {
 
 //endregion
 //region ranges
-@Throws(ReaderException::class)
 fun Reader.readIntRange(): IntRange {
 	val minValue: Int
 	val maxValue: Int

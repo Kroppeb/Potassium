@@ -47,7 +47,6 @@ interface Selector {
 		}
 
 		companion object:ReadFactory<SingleSelector> {
-			@Throws(ReaderException::class)
 			override fun Reader.parse(): SingleSelector {
 				val selector = Selector.read(this)
 				if (selector is SingleSelector) return selector

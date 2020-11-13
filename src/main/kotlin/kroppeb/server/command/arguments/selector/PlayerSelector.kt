@@ -28,7 +28,6 @@ interface PlayerSelector : Selector {
 	}
 
 	companion object : ReadFactory<PlayerSelector> {
-		@Throws(ReaderException::class)
 		override fun Reader.parse(): PlayerSelector {
 			val selector = Selector.read(this)
 			if (selector is PlayerSelector) return selector

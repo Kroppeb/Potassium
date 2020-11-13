@@ -58,7 +58,6 @@ class SummonCommand(val pos: PosArgument?, val tag: CompoundTag, val initialize:
 
 		}
 
-		@Throws(ReaderException::class)
 		override fun Reader.parse(): SummonCommand {
 			val entityType = Id()
 			var pos: PosArgument? = null

@@ -22,27 +22,23 @@ interface Reader {
 		return false
 	}
 
-	@Throws(ReaderException::class)
 	fun read(): Char
 
 	/**
 	 * skips whitespace
 	 * else throws
 	 */
-	@Throws(ReaderException::class)
 	fun moveNext()
 
 	/**
 	 * Read until "special" character
 	 * Forbidden chars = any whitespace, '=' ':' '"' '\''
 	 */
-	@Throws(ReaderException::class)
 	fun readWord(): String
 
 	/**
 	 * readUntilWhiteSpace and asserts that we are at the end or will skip ws and we are not at the end
 	 */
-	@Throws(ReaderException::class)
 	@Deprecated(replaceWith = ReplaceWith("Literal()"), message = "plz")
 	fun readLiteral(): String {
 		val res = readUntilWhitespace()
@@ -60,16 +56,12 @@ interface Reader {
 	 *
 	 * @throws ReaderException empty string
 	 */
-	@Throws(ReaderException::class)
 	fun readUntilWhitespace(): String
 
-	@Throws(ReaderException::class)
 	fun readChar(c: Char)
 
-	@Throws(ReaderException::class)
 	fun readNumber(): String?
 
-	@Throws(ReaderException::class)
 	fun readInt(): Int {
 		return try {
 			readNumber()!!.toInt()
@@ -78,7 +70,6 @@ interface Reader {
 		}
 	}
 
-	@Throws(ReaderException::class)
 	fun readDouble(): Double {
 		return if (tryRead('.')) {
 			val number = "." + readNumber()
@@ -106,7 +97,6 @@ interface Reader {
 		}
 	}
 
-	@Throws(ReaderException::class)
 	fun readSimpleDoubleIntOffset(): Double {
 		return if (tryRead('.')) {
 			val number = "." + readNumber()
@@ -145,16 +135,12 @@ interface Reader {
 	 *
 	 * @return
 	 */
-	@Throws(ReaderException::class)
 	fun readString(): String
 
-	@Throws(ReaderException::class)
 	fun readQuotedString(): String
 
-	@Throws(ReaderException::class)
 	fun readUnquotedString(): String
 
-	@Throws(ReaderException::class)
 	fun readIdentifier(): Identifier
 	val isAllowedInUnquotedString: Boolean
 		get() = canRead() && isAllowedInUnquotedString(peek())
@@ -168,7 +154,6 @@ interface Reader {
 	 * @return true if there is data to read
 	 * @throws ReaderException if next char isn't whitespace
 	 */
-	@Throws(ReaderException::class)
 	operator fun hasNext(): Boolean {
 		if (canRead()) {
 			moveNext()
@@ -177,10 +162,8 @@ interface Reader {
 		return false
 	}
 
-	@Throws(ReaderException::class)
 	fun readLine(): String
 
-	@Throws(ReaderException::class)
 	fun endLine()
 	val isWhiteSpace: Boolean
 		get() {
@@ -194,7 +177,6 @@ interface Reader {
 	 *
 	 * @throws ReaderException if the reader can't read;
 	 */
-	@Throws(ReaderException::class)
 	operator fun next() {
 		if (isWhiteSpace) moveNext()
 	}
@@ -222,7 +204,6 @@ interface Reader {
 	fun tryReadLiteral(literal: String): Boolean
 	fun tryRead(s: String): Boolean
 
-	@Throws(ReaderException::class)
 	fun readNamedPath(): String
 	val isAllowedInNamedPath: Boolean
 		get() = canRead() && isAllowedInNamedPath(peek())
@@ -262,7 +243,6 @@ interface Reader {
 	fun last(): Char
 
 
-	@Throws(ReaderException::class)
 	@ReaderDslMarker
 	operator fun <T> ReadFactory<T>.invoke(): T = readAndMove { parse() }
 

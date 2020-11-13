@@ -16,7 +16,6 @@ class Resource(val namespace: String?, val path: Array<String?>) {
 	}
 
 	companion object:ReadFactory<Resource> {
-		@Throws(ReaderException::class)
 		override fun Reader.parse(): Resource {
 			val ns = readIdentifier()
 			return Resource(ns.namespace, ns.path.split("/").toTypedArray())

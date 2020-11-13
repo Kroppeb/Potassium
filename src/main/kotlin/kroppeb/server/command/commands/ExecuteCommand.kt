@@ -87,7 +87,7 @@ class ExecuteCommand : Command {
 			entity)
 	}
 
-	@Throws(ReaderException::class)
+
 	private fun Reader.readConverter(): Converter {
 		return when (val subCommand = Literal()) {
 			"align" -> Align(Swizzle(), readConverter())
@@ -130,7 +130,6 @@ class ExecuteCommand : Command {
 		}
 	}
 
-	@Throws(ReaderException::class)
 	fun Reader.readIf(positive: Boolean): Converter {
 		return when (val type = Literal()) {
 			"block" -> IfBlock(Pos(), BlockTagPredicate(), positive, tryReadConverter())
@@ -140,12 +139,10 @@ class ExecuteCommand : Command {
 		}
 	}
 
-	@Throws(ReaderException::class)
 	fun Reader.tryReadConverter(): Converter? {
 		return if (!canRead()) null else readConverter()
 	}
 
-	@Throws(ReaderException::class)
 	fun Reader.readStore(): Store {
 		val save = Literal()
 		val result: Boolean = when (save) {
@@ -364,7 +361,6 @@ class ExecuteCommand : Command {
 		abstract fun convert(input: Double): AbstractNumberTag?
 
 		companion object : ReadFactory<Cast> {
-			@Throws(ReaderException::class)
 			override fun Reader.parse(): Cast {
 				return when (val type = readUntilWhitespace()) {
 					"byte" -> BYTE
@@ -588,7 +584,6 @@ class ExecuteCommand : Command {
 	}
 
 	companion object : ReadFactory<ExecuteCommand> {
-		@Throws(ReaderException::class)
 		override fun Reader.parse(): ExecuteCommand = with(ExecuteCommand()) {
 			readConverter()
 			this

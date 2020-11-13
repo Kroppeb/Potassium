@@ -25,7 +25,6 @@ abstract class AdvancementCommand protected constructor(
 	internal class AdvancementAdvancement(
 			operation: Operation, targets: PlayerSelector, selection: Selection?, advancement: Identifier?) :
 			AdvancementCommand(operation, targets, selection, advancement) {
-		@Throws(InvocationError::class)
 		override fun execute(source: ServerCommandSource): Int {
 			var i = 0
 			val entities = targets.getPlayers(source)
@@ -42,7 +41,6 @@ abstract class AdvancementCommand protected constructor(
 	internal class AdvancementCriterion(
 			operation: Operation, targets: PlayerSelector, advancement: Identifier?, val criterion: Identifier?) :
 			AdvancementCommand(operation, targets, Selection.ONLY, advancement) {
-		@Throws(InvocationError::class)
 		override fun execute(source: ServerCommandSource): Int {
 			var i = 0
 			val entities = targets.getPlayers(source)
@@ -57,7 +55,6 @@ abstract class AdvancementCommand protected constructor(
 	}
 
 	companion object : ReadFactory<AdvancementCommand> {
-		@Throws(ReaderException::class)
 		override fun Reader.parse(): AdvancementCommand {
 
 			val operation: Operation = when (val word = Literal()) {
