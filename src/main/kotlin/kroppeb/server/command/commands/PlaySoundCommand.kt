@@ -11,8 +11,8 @@ import kroppeb.server.command.Command
 import kroppeb.server.command.InvocationError
 import kroppeb.server.command.arguments.selector.PlayerSelector
 import kroppeb.server.command.reader.*
-import net.minecraft.command.arguments.DefaultPosArgument
-import net.minecraft.command.arguments.PosArgument
+import net.minecraft.command.argument.DefaultPosArgument
+import net.minecraft.command.argument.PosArgument
 import net.minecraft.network.packet.s2c.play.PlaySoundIdS2CPacket
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.sound.SoundCategory

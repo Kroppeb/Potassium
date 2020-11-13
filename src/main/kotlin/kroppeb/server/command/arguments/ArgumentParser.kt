@@ -13,8 +13,8 @@ import kroppeb.server.command.reader.ReaderException
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.block.pattern.CachedBlockPosition
-import net.minecraft.command.arguments.*
-import net.minecraft.command.arguments.NbtPathArgumentType.*
+import net.minecraft.command.argument.*
+import net.minecraft.command.argument.NbtPathArgumentType.*
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.*

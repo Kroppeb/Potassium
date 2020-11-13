@@ -9,11 +9,11 @@ package kroppeb.server.command.reader
 
 import kroppeb.server.command.arguments.*
 import net.minecraft.block.pattern.CachedBlockPosition
-import net.minecraft.command.arguments.BlockPredicateArgumentType
-import net.minecraft.command.arguments.ItemPredicateArgumentType
-import net.minecraft.command.arguments.NbtPathArgumentType
-import net.minecraft.command.arguments.NbtPathArgumentType.NbtPath
-import net.minecraft.command.arguments.PosArgument
+import net.minecraft.command.argument.BlockPredicateArgumentType
+import net.minecraft.command.argument.ItemPredicateArgumentType
+import net.minecraft.command.argument.NbtPathArgumentType
+import net.minecraft.command.argument.NbtPathArgumentType.NbtPath
+import net.minecraft.command.argument.PosArgument
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.text.Text

@@ -8,7 +8,7 @@ package kroppeb.server.command.arguments
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException
 import kroppeb.server.command.reader.*
-import net.minecraft.command.arguments.NbtPathArgumentType.NbtPath
+import net.minecraft.command.argument.NbtPathArgumentType.NbtPath
 import net.minecraft.nbt.Tag
 import net.minecraft.server.command.ServerCommandSource
 

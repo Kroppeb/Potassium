@@ -12,8 +12,8 @@ import kroppeb.server.command.InvocationError
 import kroppeb.server.command.reader.*
 import kroppeb.server.command.toLoadedBlockPosition
 import net.minecraft.block.pattern.CachedBlockPosition
-import net.minecraft.command.arguments.BlockStateArgument
-import net.minecraft.command.arguments.PosArgument
+import net.minecraft.command.argument.BlockStateArgument
+import net.minecraft.command.argument.PosArgument
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.Clearable

@@ -15,7 +15,7 @@ import kroppeb.server.command.reader.Int
 import kroppeb.server.command.reader.ItemPredicate
 import kroppeb.server.command.reader.ReadFactory
 import kroppeb.server.command.reader.Reader
-import net.minecraft.command.arguments.ItemPredicateArgumentType
+import net.minecraft.command.argument.ItemPredicateArgumentType
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.TranslatableText
@@ -47,7 +47,7 @@ class ClearCommand(val target: PlayerSelector, val item: ItemPredicateArgumentTy
 		val targets = this.target.getPlayers(source)
 
 		for(serverPlayerEntity in targets){
-			i += serverPlayerEntity.inventory.method_29280(
+			i += serverPlayerEntity.inventory.remove(
 				item,
 				maxCount,
 				serverPlayerEntity.playerScreenHandler.method_29281())

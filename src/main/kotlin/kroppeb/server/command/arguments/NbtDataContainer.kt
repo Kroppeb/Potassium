@@ -8,7 +8,7 @@ package kroppeb.server.command.arguments
 
 import kroppeb.server.command.arguments.selector.Selector.SingleSelector
 import kroppeb.server.command.reader.*
-import net.minecraft.command.arguments.PosArgument
+import net.minecraft.command.argument.PosArgument
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.util.Identifier

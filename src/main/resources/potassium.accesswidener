@@ -2,14 +2,14 @@ accessWidener v1 named
 
 accessible	field	net/minecraft/nbt/CompoundTag	tags	Ljava/util/Map;
 
-accessible	field	net/minecraft/command/arguments/LookingPosArgument	x	D
-accessible	field	net/minecraft/command/arguments/LookingPosArgument	y	D
-accessible	field	net/minecraft/command/arguments/LookingPosArgument	z	D
+accessible	field	net/minecraft/command/argument/LookingPosArgument	x	D
+accessible	field	net/minecraft/command/argument/LookingPosArgument	y	D
+accessible	field	net/minecraft/command/argument/LookingPosArgument	z	D
 
-accessible	field	net/minecraft/command/arguments/DefaultPosArgument	x	Lnet/minecraft/command/arguments/CoordinateArgument;
-accessible	field	net/minecraft/command/arguments/DefaultPosArgument	y	Lnet/minecraft/command/arguments/CoordinateArgument;
-accessible	field	net/minecraft/command/arguments/DefaultPosArgument	z	Lnet/minecraft/command/arguments/CoordinateArgument;
-accessible	field	net/minecraft/command/arguments/CoordinateArgument	value	D
+accessible	field	net/minecraft/command/argument/DefaultPosArgument	x	Lnet/minecraft/command/arguments/CoordinateArgument;
+accessible	field	net/minecraft/command/argument/DefaultPosArgument	y	Lnet/minecraft/command/arguments/CoordinateArgument;
+accessible	field	net/minecraft/command/argument/DefaultPosArgument	z	Lnet/minecraft/command/arguments/CoordinateArgument;
+accessible	field	net/minecraft/command/argument/CoordinateArgument	value	D
 
 
 accessible	field	net/minecraft/server/command/ServerCommandSource	level	I
@@ -17,35 +17,36 @@ accessible	field	net/minecraft/server/command/ServerCommandSource	output	Lnet/mi
 accessible	field	net/minecraft/server/command/ServerCommandSource	silent	Z
 accessible	field	net/minecraft/server/command/ServerCommandSource	resultConsumer Lcom/mojang/brigadier/ResultConsumer;
 
-accessible	field	net/minecraft/command/arguments/EntityAnchorArgumentType$EntityAnchor	offset	Ljava/util/function/BiFunction;
+accessible	field	net/minecraft/command/argument/EntityAnchorArgumentType$EntityAnchor	offset	Ljava/util/function/BiFunction;
 
-accessible	class	net/minecraft/command/arguments/BlockPredicateArgumentType$TagPredicate
-accessible	method	net/minecraft/command/arguments/BlockPredicateArgumentType$TagPredicate	<init>	(Lnet/minecraft/tag/Tag;Ljava/util/Map;Lnet/minecraft/nbt/CompoundTag;)V
-accessible	class	net/minecraft/command/arguments/BlockPredicateArgumentType$StatePredicate
-accessible	class	net/minecraft/command/arguments/ItemPredicateArgumentType$TagPredicate
-accessible	class	net/minecraft/command/arguments/ItemPredicateArgumentType$ItemPredicate
+accessible	class	net/minecraft/command/argument/BlockPredicateArgumentType$TagPredicate
+accessible	method	net/minecraft/command/argument/BlockPredicateArgumentType$TagPredicate	<init>	(Lnet/minecraft/tag/Tag;Ljava/util/Map;Lnet/minecraft/nbt/CompoundTag;)V
+accessible	class	net/minecraft/command/argument/BlockPredicateArgumentType$StatePredicate
+accessible	class	net/minecraft/command/argument/ItemPredicateArgumentType$TagPredicate
+accessible	class	net/minecraft/command/argument/ItemPredicateArgumentType$ItemPredicate
 # init is already public for last 3
 
 accessible	method	net/minecraft/server/command/DataCommand	executeInsert	(ILnet/minecraft/nbt/CompoundTag;Lnet/minecraft/command/arguments/NbtPathArgumentType$NbtPath;Ljava/util/List;)I
 
-accessible	class	net/minecraft/command/arguments/NbtPathArgumentType$PathNode
-accessible	class	net/minecraft/command/arguments/NbtPathArgumentType$FilteredRootNode
-accessible	class	net/minecraft/command/arguments/NbtPathArgumentType$FilteredNamedNode
-accessible	class	net/minecraft/command/arguments/NbtPathArgumentType$AllListElementNode
-accessible	class	net/minecraft/command/arguments/NbtPathArgumentType$FilteredListElementNode
-accessible	class	net/minecraft/command/arguments/NbtPathArgumentType$IndexedListElementNode
-accessible	class	net/minecraft/command/arguments/NbtPathArgumentType$NamedNode
+accessible	class	net/minecraft/command/argument/NbtPathArgumentType$PathNode
+accessible	class	net/minecraft/command/argument/NbtPathArgumentType$FilteredRootNode
+accessible	class	net/minecraft/command/argument/NbtPathArgumentType$FilteredNamedNode
+accessible	class	net/minecraft/command/argument/NbtPathArgumentType$AllListElementNode
+accessible	class	net/minecraft/command/argument/NbtPathArgumentType$FilteredListElementNode
+accessible	class	net/minecraft/command/argument/NbtPathArgumentType$IndexedListElementNode
+accessible	class	net/minecraft/command/argument/NbtPathArgumentType$NamedNode
 
 accessible	class	net/minecraft/server/command/AdvancementCommand$Operation
 accessible	class	net/minecraft/server/command/AdvancementCommand$Selection
 accessible	method	net/minecraft/server/command/AdvancementCommand	select	(Lnet/minecraft/advancement/Advancement;Lnet/minecraft/server/command/AdvancementCommand$Selection;)Ljava/util/List;
 accessible	method	net/minecraft/server/command/AdvancementCommand$Operation	processEachCriterion	(Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/advancement/Advancement;Ljava/lang/String;)Z
 
+accessible	field	net/minecraft/command/argument/ItemSlotArgumentType	slotNamesToSlotCommandId	Ljava/util/Map;
 
-accessible	field	net/minecraft/command/arguments/ItemSlotArgumentType	slotNamesToSlotCommandId	Ljava/util/Map;
-
-accessible	field	net/minecraft/command/arguments/ItemPredicateArgumentType$ItemPredicate	item	Lnet/minecraft/item/Item;
-accessible	field	net/minecraft/command/arguments/ItemPredicateArgumentType$ItemPredicate	compound	Lnet/minecraft/nbt/CompoundTag;
+accessible	field	net/minecraft/command/argument/ItemPredicateArgumentType$ItemPredicate	item	Lnet/minecraft/item/Item;
+accessible	field	net/minecraft/command/argument/ItemPredicateArgumentType$ItemPredicate	compound	Lnet/minecraft/nbt/CompoundTag;
 
 accessible	field	net/minecraft/text/Text$Serializer	GSON	Lcom/google/gson/Gson;
 accessible	method	net/minecraft/text/Text$Serializer	getPosition	(Lcom/google/gson/stream/JsonReader;)I
+
+accessible	method	net/minecraft/server/command/DataCommand	executeInsert	(ILnet/minecraft/nbt/CompoundTag;Lnet/minecraft/command/argument/NbtPathArgumentType$NbtPath;Ljava/util/List;)I

@@ -16,7 +16,7 @@ import kroppeb.server.command.arguments.NbtDataSource.NbtDataPathSource
 import kroppeb.server.command.arguments.readPath
 import kroppeb.server.command.commands.DataCommand.Modify.*
 import kroppeb.server.command.reader.*
-import net.minecraft.command.arguments.NbtPathArgumentType.NbtPath
+import net.minecraft.command.argument.NbtPathArgumentType.NbtPath
 import net.minecraft.nbt.*
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.util.math.MathHelper
@@ -81,7 +81,6 @@ abstract class DataCommand protected constructor(val target: NbtDataContainer) :
 
 		class Append(target: NbtDataContainer, path: NbtPath, source: NbtDataSource?) :
 				Modify(target, path, source) {
-			@Throws(InvocationError::class)
 			override fun execute(source: ServerCommandSource): Int {
 				val tag = target.getTag(source)
 				val i = insert(-1, tag, path, this.source!!.getData(source)) // shouldn't be 0 if error is throw.
@@ -94,7 +93,6 @@ abstract class DataCommand protected constructor(val target: NbtDataContainer) :
 				target,
 				path,
 				source) {
-			@Throws(InvocationError::class)
 			override fun execute(source: ServerCommandSource): Int {
 				val tag = target.getTag(source)
 				val i = insert(0, tag, path, this.source!!.getData(source)) // shouldn't be 0 if error is throw.
@@ -107,7 +105,6 @@ abstract class DataCommand protected constructor(val target: NbtDataContainer) :
 				target,
 				path,
 				source) {
-			@Throws(InvocationError::class)
 			override fun execute(source: ServerCommandSource): Int {
 				val tag = target.getTag(source)
 				val i = insert(index, tag, path, this.source!!.getData(source)) // shouldn't be 0 if error is throw.
@@ -208,11 +205,11 @@ abstract class DataCommand protected constructor(val target: NbtDataContainer) :
 					val target = NbtDataContainer()
 					val path = Path()
 					when (val mode = Literal()) {
-						"append" -> Append(target, path, NbtDataSource())
-						"insert" -> Insert(target, path, NbtDataSource(), Int())
-						"merge" -> Merge(target, path, NbtDataSource())
-						"prepend" -> Prepend(target, path, NbtDataSource())
-						"set" -> Set(target, path, NbtDataSource())
+						"append" -> Append(target, path, NbtDataSource.invoke())
+						"insert" -> Insert(target, path, NbtDataSource.invoke(), Int())
+						"merge" -> Merge(target, path, NbtDataSource.invoke())
+						"prepend" -> Prepend(target, path, NbtDataSource.invoke())
+						"set" -> Set(target, path, NbtDataSource.invoke())
 						else -> throw ReaderException("Unknown nbt operation: $mode")
 					}
 				}

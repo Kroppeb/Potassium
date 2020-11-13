@@ -14,9 +14,9 @@ import kroppeb.server.command.arguments.selector.Selector
 import kroppeb.server.command.reader.*
 import kroppeb.server.command.toItemStackArgument
 import kroppeb.server.command.toLoadedBlockPosition
-import net.minecraft.command.arguments.ItemSlotArgumentType
-import net.minecraft.command.arguments.ItemStackArgument
-import net.minecraft.command.arguments.PosArgument
+import net.minecraft.command.argument.ItemSlotArgumentType
+import net.minecraft.command.argument.ItemStackArgument
+import net.minecraft.command.argument.PosArgument
 import net.minecraft.inventory.Inventory
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayerEntity

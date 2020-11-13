@@ -16,8 +16,8 @@ val asmVersion:String by project
 
 plugins {
 	java
-	kotlin("jvm") version "1.3.72"
-	id("fabric-loom") version "0.4-SNAPSHOT"
+	kotlin("jvm") version "1.4.10"
+	id("fabric-loom") version "0.5-SNAPSHOT"
 }
 
 base {
@@ -55,6 +55,8 @@ dependencies {
 	implementation("org.ow2.asm:asm:$asmVersion")
 	implementation("org.ow2.asm:asm-util:$asmVersion")
 	implementation(kotlin("stdlib-jdk8"))
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.1")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.4.1")
 }
 
 tasks.withType<ProcessResources> {

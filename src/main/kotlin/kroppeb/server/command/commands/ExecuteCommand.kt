@@ -17,9 +17,9 @@ import kroppeb.server.command.arguments.selector.Selector
 import kroppeb.server.command.arguments.selector.Selector.SingleSelector
 import kroppeb.server.command.reader.*
 import net.minecraft.block.pattern.CachedBlockPosition
-import net.minecraft.command.arguments.EntityAnchorArgumentType.EntityAnchor
-import net.minecraft.command.arguments.NbtPathArgumentType.NbtPath
-import net.minecraft.command.arguments.PosArgument
+import net.minecraft.command.argument.EntityAnchorArgumentType.EntityAnchor
+import net.minecraft.command.argument.NbtPathArgumentType.NbtPath
+import net.minecraft.command.argument.PosArgument
 import net.minecraft.entity.Entity
 import net.minecraft.nbt.*
 import net.minecraft.server.MinecraftServer

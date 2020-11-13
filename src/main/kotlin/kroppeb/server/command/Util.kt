@@ -7,9 +7,9 @@
 package kroppeb.server.command
 
 import kroppeb.server.command.reader.ReaderException
-import net.minecraft.command.arguments.ItemPredicateArgumentType
-import net.minecraft.command.arguments.ItemStackArgument
-import net.minecraft.command.arguments.PosArgument
+import net.minecraft.command.argument.ItemPredicateArgumentType
+import net.minecraft.command.argument.ItemStackArgument
+import net.minecraft.command.argument.PosArgument
 import net.minecraft.scoreboard.ScoreboardObjective
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.command.ServerCommandSource
@@ -63,7 +63,7 @@ fun PosArgument.toLoadedBlockPosition(source: ServerCommandSource): BlockPos? {
 	val world = source.world
 	return when {
 		!world.isChunkLoaded(blockPos) -> null // TODO: should I throw?
-		!ServerWorld.method_24794(blockPos) -> null // TODO: should i throw?
+		!ServerWorld.isInBuildLimit(blockPos) -> null // TODO: should i throw?
 		else -> blockPos
 	}
 }

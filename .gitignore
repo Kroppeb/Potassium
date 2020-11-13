@@ -33,3 +33,5 @@ run/
 src/main/java/kroppeb/test/
 src/main/resources/kroppeb/test/
 src/main/kotlin/kroppeb/test/
+
+/musical-output*.txt
