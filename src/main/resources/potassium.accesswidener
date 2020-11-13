@@ -50,3 +50,6 @@ accessible	field	net/minecraft/text/Text$Serializer	GSON	Lcom/google/gson/Gson;
 accessible	method	net/minecraft/text/Text$Serializer	getPosition	(Lcom/google/gson/stream/JsonReader;)I
 
 accessible	method	net/minecraft/server/command/DataCommand	executeInsert	(ILnet/minecraft/nbt/CompoundTag;Lnet/minecraft/command/argument/NbtPathArgumentType$NbtPath;Ljava/util/List;)I
+
+accessible	class	net/minecraft/server/command/CloneCommand$Mode
+accessible	class	net/minecraft/server/command/CloneCommand$BlockInfo

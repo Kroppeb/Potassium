@@ -4,7 +4,7 @@
     * [x] attribute
     * [x] bossbar
     * [x] clear
-    * [ ] clone
+    * [x] clone
     * [x] data
     * [ ] datapack
     * [ ] defaultgamemode
