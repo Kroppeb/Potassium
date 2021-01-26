@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Kroppeb
+ * Copyright (c) 2021 Kroppeb
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -8,6 +8,7 @@
 package kroppeb.server.command.arguments.selector
 
 import kroppeb.server.command.arguments.selector.Selector.Companion.parse
+import kroppeb.server.command.reader.ReadFactory
 import kroppeb.server.command.reader.Reader
 import kroppeb.server.command.reader.ReaderException
 import net.minecraft.entity.Entity
@@ -32,15 +33,15 @@ interface SinglePlayerSelector : Selector.SingleSelector, PlayerSelector {
 	}
 
 	fun getPlayer(world: ServerWorld, pos: Vec3d, executor: Entity?): ServerPlayerEntity?
-	fun getPlayer(source: ServerCommandSource): PlayerEntity? {
+	fun getPlayer(source: ServerCommandSource): ServerPlayerEntity? {
 		return getPlayer(source.world, source.position, source.entity)
 	}
 
-	companion object {
-		fun Reader.readSinglePlayerSelector(): SinglePlayerSelector {
-			val selector = parse()
+	companion object : ReadFactory<SinglePlayerSelector> {
+		override fun Reader.parse(): SinglePlayerSelector {
+			val selector = Selector()
 			if (selector is SinglePlayerSelector) return selector
-			throw ReaderException("not limited to 1 player") // TODO check limit value why
+			throw ReaderException("not limited a single player")
 		}
 	}
 }

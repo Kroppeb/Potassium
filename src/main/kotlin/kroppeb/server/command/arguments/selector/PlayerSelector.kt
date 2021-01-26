@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Kroppeb
+ * Copyright (c) 2021 Kroppeb
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -29,7 +29,7 @@ interface PlayerSelector : Selector {
 
 	companion object : ReadFactory<PlayerSelector> {
 		override fun Reader.parse(): PlayerSelector {
-			val selector = Selector.read(this)
+			val selector = Selector()
 			if (selector is PlayerSelector) return selector
 			throw ReaderException("not limited to players")
 		}

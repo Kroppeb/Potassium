@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Kroppeb
+ * Copyright (c) 2021 Kroppeb
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -27,6 +27,7 @@ object Parser {
 			"clear" -> ClearCommand.read(reader)
 			"data" -> DataCommand.read(reader)
 			"execute" -> ExecuteCommand.read(reader)
+			"experience" -> ExperienceCommand.read(reader)
 			"function" -> FunctionCommand.read(reader)
 			"kill" -> KillCommand.read(reader)
 			"locatebiome" -> LocateBiomeCommand.read(reader)
@@ -36,6 +37,7 @@ object Parser {
 			"setblock" -> SetBlockCommand.read(reader)
 			"summon" -> SummonCommand.read(reader)
 			"tag" -> TagCommand.read(reader)
+			"xp" -> ExperienceCommand.read(reader)
 			else -> throw ReaderException("Unknown command: $command")
 		}
 		reader.endLine()

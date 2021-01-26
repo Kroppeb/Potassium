@@ -53,3 +53,6 @@ accessible	method	net/minecraft/server/command/DataCommand	executeInsert	(ILnet/
 
 accessible	class	net/minecraft/server/command/CloneCommand$Mode
 accessible	class	net/minecraft/server/command/CloneCommand$BlockInfo
+
+accessible	class	net/minecraft/server/command/ExperienceCommand$Component
+accessible	field	net/minecraft/server/command/ExperienceCommand$Component	getter	Ljava/util/function/ToIntFunction;
