@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Kroppeb
+ * Copyright (c) 2021 Kroppeb
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -42,20 +42,254 @@ class FunctionNamespaceBuilder(private val writer: ClassVisitor) {
 			val end = Label()
 			mv.visitLabel(start)
 			for (cd in commands) {
-				mv.visitFieldInsn(Opcodes.GETSTATIC, this@FunctionNamespaceBuilder.name, cd.name, "Lkroppeb/server/command/Command;")
+				mv.visitFieldInsn(
+					Opcodes.GETSTATIC,
+					this@FunctionNamespaceBuilder.name,
+					cd.name,
+					"Lkroppeb/server/command/Command;"
+				)
 				mv.visitVarInsn(Opcodes.ALOAD, 0)
-				mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "kroppeb/server/command/commands/Command", "execute", "(Lnet/minecraft/server/command/ServerCommandSource;)V", true)
+				mv.visitMethodInsn(
+					Opcodes.INVOKEINTERFACE,
+					"kroppeb/server/command/commands/Command",
+					"execute",
+					"(Lnet/minecraft/server/command/ServerCommandSource;)V",
+					true
+				)
 			}
 			loadInt(mv, commands.size)
 			mv.visitInsn(Opcodes.IRETURN)
 
 			// debug info
 			mv.visitLabel(end)
-			run { mv.visitLocalVariable("source", "Lnet/minecraft/server/command/ServerCommandSource;", null, start, end, 0) }
+			run {
+				mv.visitLocalVariable(
+					"source",
+					"Lnet/minecraft/server/command/ServerCommandSource;",
+					null,
+					start,
+					end,
+					0
+				)
+			}
 			mv.visitMaxs(2, 1)
 			mv.visitEnd()
 		}
 
+	}
+
+	private fun buildStoreCommands() {
+		var current = writer.visitMethod(Opcodes.ACC_STATIC, "__clinit_BuildStoreCommand_0", "()V", null, null)
+		current.visitCode()
+		var start = Label()
+		current.visitLabel(start)
+		current.visitFieldInsn(
+			Opcodes.GETSTATIC,
+			"kroppeb/server/command/CommandLoader",
+			"functions",
+			"Ljava/util/Map;"
+		)
+		current.visitVarInsn(Opcodes.ASTORE, 0)
+
+		var estSize = 0
+		var functionIndex = 0
+
+		for (function in functions) {
+			if (estSize > 15_000) {
+
+				functionIndex++
+				estSize = 0
+
+				current.visitMethodInsn(
+					Opcodes.INVOKESTATIC,
+					"kroppeb/potassium/generated/GeneratedFunctions",
+					"__clinit_BuildStoreCommand_$functionIndex",
+					"()V",
+					false
+				)
+				val end = Label()
+				current.visitLabel(end)
+				current.visitInsn(Opcodes.RETURN)
+				current.visitLocalVariable(
+					"functions",
+					"Ljava/util/Map;",
+					"Ljava/util/Map<Ljava/lang/String;Lkroppeb/server/command/Command;>;",
+					start,
+					end,
+					0
+				)
+				current.visitMaxs(3, 1)
+				current.visitEnd()
+
+
+				current = writer.visitMethod(
+					Opcodes.ACC_STATIC,
+					"__clinit_BuildStoreCommand_$functionIndex",
+					"()V",
+					null,
+					null
+				)
+				current.visitCode()
+				start = Label()
+				current.visitLabel(start)
+				current.visitFieldInsn(
+					Opcodes.GETSTATIC,
+					"kroppeb/server/command/CommandLoader",
+					"functions",
+					"Ljava/util/Map;"
+				)
+				current.visitVarInsn(Opcodes.ASTORE, 0)
+
+			}
+			current.visitVarInsn(Opcodes.ALOAD, 0)
+			current.visitLdcInsn(function.name)
+			current.visitInvokeDynamicInsn(
+				"execute",
+				"()Lkroppeb/server/command/Command;",
+				Handle(
+					Opcodes.H_INVOKESTATIC,
+					"java/lang/invoke/LambdaMetafactory",
+					"metafactory",
+					"(Ljava/lang/invoke/MethodHandles\$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;",
+					false
+				),
+				Type.getType(
+					"(Lnet/minecraft/server/command/ServerCommandSource;)I"
+				),
+				Handle(
+					Opcodes.H_INVOKESTATIC,
+					fullName,
+					function.name,
+					"(Lnet/minecraft/server/command/ServerCommandSource;)I",
+					false
+				),
+				Type.getType(
+					"(Lnet/minecraft/server/command/ServerCommandSource;)I"
+				)
+			)
+			current.visitMethodInsn(
+				Opcodes.INVOKEINTERFACE,
+				"java/util/Map",
+				"put",
+				"(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
+				true
+			)
+			current.visitInsn(Opcodes.POP)
+			estSize += 64 // too big but i'm too lazy to check
+		}
+
+		val end = Label()
+		current.visitLabel(end)
+		current.visitInsn(Opcodes.RETURN)
+		current.visitLocalVariable(
+			"functions",
+			"Ljava/util/Map;",
+			"Ljava/util/Map<Ljava/lang/String;Lkroppeb/server/command/Command;>;",
+			start,
+			end,
+			0
+		)
+		current.visitMaxs(3, 1)
+		current.visitEnd()
+	}
+
+	private fun buildStore(fields: ArrayList<CommandData>) {
+		var current = writer.visitMethod(Opcodes.ACC_STATIC, "__clinit_BuildStore_0", "()V", null, null)
+		current.visitCode()
+		var start = Label()
+		current.visitLabel(start)
+
+		current.visitFieldInsn(
+			Opcodes.GETSTATIC,
+			"kroppeb/server/command/CommandLoader",
+			"commands",
+			"[Lkroppeb/server/command/Command;"
+		)
+		current.visitVarInsn(Opcodes.ASTORE, 0)
+
+		var estSize = 0
+		var functionIndex = 0
+
+		for (j in fields.indices) {
+			if (estSize > 15_000) {
+
+				functionIndex++
+				estSize = 0
+
+
+				current.visitMethodInsn(
+					Opcodes.INVOKESTATIC,
+					"kroppeb/potassium/generated/GeneratedFunctions",
+					"__clinit_BuildStore_$functionIndex",
+					"()V",
+					false
+				)
+				val end = Label()
+				current.visitLabel(end)
+				current.visitInsn(Opcodes.RETURN)
+				current.visitLocalVariable("commands", "[Lkroppeb/server/command/Command;", null, start, end, 0)
+				current.visitMaxs(3, 1)
+				current.visitEnd()
+
+
+				current =
+					writer.visitMethod(Opcodes.ACC_STATIC, "__clinit_BuildStore_$functionIndex", "()V", null, null)
+				current.visitCode()
+				start = Label()
+				current.visitLabel(start)
+
+				current.visitFieldInsn(
+					Opcodes.GETSTATIC,
+					"kroppeb/server/command/CommandLoader",
+					"commands",
+					"[Lkroppeb/server/command/Command;"
+				)
+				current.visitVarInsn(Opcodes.ASTORE, 0)
+
+			}
+
+			current.visitVarInsn(Opcodes.ALOAD, 0)
+			loadInt(current, j)
+			current.visitInsn(Opcodes.AALOAD)
+			current.visitFieldInsn(Opcodes.PUTSTATIC, fullName, fields[j].name, "Lkroppeb/server/command/Command;")
+
+			estSize += 32 // idk
+		}
+
+		val end = Label()
+		current.visitLabel(end)
+		current.visitInsn(Opcodes.RETURN)
+		current.visitLocalVariable("commands", "[Lkroppeb/server/command/Command;", null, start, end, 0)
+		current.visitMaxs(3, 1)
+		current.visitEnd()
+	}
+
+	private fun buildClinit(fields: ArrayList<CommandData>) {
+		buildStoreCommands()
+		buildStore(fields)
+		val clinit = writer.visitMethod(Opcodes.ACC_STATIC, "<clinit>", "()V", null, null)
+		clinit.visitCode()
+		clinit.visitMethodInsn(
+			Opcodes.INVOKESTATIC,
+			"kroppeb/potassium/generated/GeneratedFunctions",
+			"__clinit_BuildStoreCommand_0",
+			"()V",
+			false
+		)
+
+		clinit.visitMethodInsn(Opcodes.INVOKESTATIC, "kroppeb/server/command/CommandLoader", "loadAll", "()V", false)
+		clinit.visitMethodInsn(
+			Opcodes.INVOKESTATIC,
+			"kroppeb/potassium/generated/GeneratedFunctions",
+			"__clinit_BuildStore_0",
+			"()V",
+			false
+		)
+		clinit.visitInsn(Opcodes.RETURN)
+
+		clinit.visitMaxs(0, 0)
+		clinit.visitEnd()
+		writer.visitEnd()
 	}
 
 	fun build() {
@@ -67,63 +301,12 @@ class FunctionNamespaceBuilder(private val writer: ClassVisitor) {
 		// fields
 		val i = 0
 		for (cd in fields) writer
-				.visitField(Opcodes.ACC_STATIC, cd.name, "Lkroppeb/server/command/Command;", null, null)
-				.visitEnd()
+			.visitField(Opcodes.ACC_STATIC, cd.name, "Lkroppeb/server/command/Command;", null, null)
+			.visitEnd()
 		for (fb in functions) {
 			fb.build()
 		}
-		val clinit = writer.visitMethod(Opcodes.ACC_STATIC, "<clinit>", "()V", null, null)
-		clinit.visitCode()
-		val start = Label()
-		clinit.visitLabel(start)
-		clinit.visitFieldInsn(Opcodes.GETSTATIC, "kroppeb/server/command/CommandLoader", "functions", "Ljava/util/Map;")
-		clinit.visitVarInsn(Opcodes.ASTORE, 0)
-		for (function in functions) {
-			clinit.visitVarInsn(Opcodes.ALOAD, 0)
-			clinit.visitLdcInsn(function.name)
-			clinit.visitInvokeDynamicInsn(
-					"execute",
-					"()Lkroppeb/server/command/Command;",
-					Handle(Opcodes.H_INVOKESTATIC,
-							"java/lang/invoke/LambdaMetafactory",
-							"metafactory",
-							"(Ljava/lang/invoke/MethodHandles\$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;",
-							false),
-					Type.getType(
-							"(Lnet/minecraft/server/command/ServerCommandSource;)I"
-					),
-					Handle(
-							Opcodes.H_INVOKESTATIC,
-							fullName,
-							function.name,
-							"(Lnet/minecraft/server/command/ServerCommandSource;)I",
-							false
-					),
-					Type.getType(
-							"(Lnet/minecraft/server/command/ServerCommandSource;)I"
-					))
-			clinit.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/util/Map", "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", true)
-			clinit.visitInsn(Opcodes.POP)
-		}
-		clinit.visitMethodInsn(Opcodes.INVOKESTATIC, "kroppeb/server/command/CommandLoader", "loadAll", "()V", false)
-		val part2 = Label()
-		clinit.visitLabel(part2)
-		clinit.visitFieldInsn(Opcodes.GETSTATIC, "kroppeb/server/command/CommandLoader", "commands", "[Lkroppeb/server/command/Command;")
-		clinit.visitVarInsn(Opcodes.ASTORE, 0)
-		for (j in fields.indices) {
-			clinit.visitVarInsn(Opcodes.ALOAD, 0)
-			loadInt(clinit, j)
-			clinit.visitInsn(Opcodes.AALOAD)
-			clinit.visitFieldInsn(Opcodes.PUTSTATIC, fullName, fields[j].name, "Lkroppeb/server/command/Command;")
-		}
-		val end = Label()
-		clinit.visitLabel(end)
-		clinit.visitInsn(Opcodes.RETURN)
-		clinit.visitLocalVariable("functions", "Ljava/util/Map;", "Ljava/util/Map<Ljava/lang/String;Lkroppeb/server/command/Command;>;", start, part2, 0)
-		clinit.visitLocalVariable("commands", "[Lkroppeb/server/command/Command;", null, part2, end, 0)
-		clinit.visitMaxs(3, 1)
-		clinit.visitEnd()
-		writer.visitEnd()
+		buildClinit(fields)
 	}
 
 	init {
