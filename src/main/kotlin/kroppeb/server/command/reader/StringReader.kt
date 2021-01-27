@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Kroppeb
+ * Copyright (c) 2021 Kroppeb
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -7,7 +7,6 @@
 package kroppeb.server.command.reader
 
 import com.google.gson.stream.JsonReader
-import net.minecraft.text.MutableText
 import net.minecraft.text.Text.Serializer.getPosition
 import net.minecraft.util.Identifier
 
@@ -218,15 +217,17 @@ class StringReader : Reader {
 
 	override fun <T>readJson(clazz: Class<T>): T {
 		// TODO fix json for non text class?
-		val jsonReader = JsonReader(java.io.StringReader(line))
+		val str = line.substring(this.index)
+		val jsonReader = JsonReader(java.io.StringReader(str))
 		jsonReader.isLenient = false
 		try {
 			val value = net.minecraft.text.Text.Serializer.GSON
 				.getAdapter(clazz)
 				.read(jsonReader)
-			skip(getPosition(jsonReader))
+			val pos = getPosition(jsonReader)
+			skip(pos-1)
 			return value
-		} catch (ex : Exception){
+		} catch (ex: Exception) {
 			throw ReaderException("invalid json", ex)
 		}
 	}
