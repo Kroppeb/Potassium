@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Kroppeb
+ * Copyright (c) 2021 Kroppeb
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -60,11 +60,11 @@ interface Reader {
 
 	fun readChar(c: Char)
 
-	fun readNumber(): String?
+	fun readNumber(): String
 
 	fun readInt(): Int {
 		return try {
-			readNumber()!!.toInt()
+			readNumber().toInt()
 		} catch (e: NumberFormatException) {
 			throw ReaderException("invalid int: " + e.message, e)
 		}

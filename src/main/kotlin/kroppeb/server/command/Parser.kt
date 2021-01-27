@@ -48,7 +48,7 @@ object Parser {
 
 	fun readFile(file: List<String>): List<Command> {
 		val cmds: MutableList<Command> = ArrayList()
-		val errors: MutableList<String> = ArrayList()
+		val errors: MutableList<Pair<String,Throwable>> = ArrayList()
 		val reader = StringReader()
 		var line = 0
 		for (i in file) {
@@ -59,11 +59,15 @@ object Parser {
 				cmds.add(readFunction(reader))
 			} catch (e: ReaderException) {
 				errors.add("""line: $line, pos: ${reader.index + 1}
-	${e.message}""")
+	${e.message}""" to e)
 			}
 		}
 		if (errors.isEmpty()) return cmds
-		throw ReaderException(java.lang.String.join("\n", errors))
+
+		val ex = ReaderException(errors.joinToString(separator = "\n") { it.first },errors[0].second)
+		for(i in errors.drop(1))
+			errors[0].second.addSuppressed(i.second)
+		throw ex
 	}
 
 	fun readFile(file: Path): List<Command> {

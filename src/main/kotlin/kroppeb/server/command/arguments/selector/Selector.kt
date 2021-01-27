@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Kroppeb
+ * Copyright (c) 2021 Kroppeb
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -123,38 +123,43 @@ interface Selector {
 
 	companion object : ReadFactory<Selector> {
 		override fun Reader.parse(): Selector {
-			readChar('@')
-			val kind = read()
-			return if (tryRead('[')) {
-				val sb = SelectorBuilder()
-				when (kind) {
-					's' -> sb.onlySelf = true
-					'a' -> sb.onlyPlayers = true
-					'e' -> {}
-					'p' -> {
-						sb.onlyPlayers = true
-						sb.onlyOne = true
-						sb.setLimit(1)
-						sb.setSort(Sorter.NEAREST)
+			try {
+				readChar('@')
+				val kind = read()
+				return if (tryRead('[')) {
+					val sb = SelectorBuilder()
+					when (kind) {
+						's' -> sb.onlySelf = true
+						'a' -> sb.onlyPlayers = true
+						'e' -> {
+						}
+						'p' -> {
+							sb.onlyPlayers = true
+							sb.onlyOne = true
+							sb.setLimit(1)
+							sb.setSort(Sorter.NEAREST)
+						}
+						'r' -> {
+							sb.onlyPlayers = true
+							sb.onlyOne = true
+							sb.setLimit(1)
+							sb.setSort(Sorter.RANDOM)
+						}
+						else -> throw ReaderException("Unknown selector: @$kind")
 					}
-					'r' -> {
-						sb.onlyPlayers = true
-						sb.onlyOne = true
-						sb.setLimit(1)
-						sb.setSort(Sorter.RANDOM)
+					readBuilder(sb).build()
+				} else {
+					when (kind) {
+						's' -> Self
+						'a' -> AllPlayers
+						'e' -> AllEntities
+						'p' -> ClosestPlayer
+						'r' -> RandomPlayer
+						else -> throw ReaderException("Unknown selector: @$kind")
 					}
-					else -> throw ReaderException("Unknown selector: @$kind")
 				}
-				readBuilder(sb).build()
-			} else {
-				when (kind) {
-					's' -> Self
-					'a' -> AllPlayers
-					'e' -> AllEntities
-					'p' -> ClosestPlayer
-					'r' -> RandomPlayer
-					else -> throw ReaderException("Unknown selector: @$kind")
-				}
+			}catch (err:ReaderException){
+				throw ReaderException("error while reading selector", err)
 			}
 		}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Kroppeb
+ * Copyright (c) 2021 Kroppeb
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -32,6 +32,7 @@ fun Reader.readCompoundTag(): CompoundTag {
 	next()
 	if (!tryRead('}')) {
 		do {
+			next()
 			val key = readString()
 			next()
 			readChar(':')
@@ -57,22 +58,28 @@ fun Reader.readListTag(): ListTag {
 	val list = ListTag()
 	var type: Byte = -1
 	next()
-	while (peek() != ']') {
-		val tag = readTag()
-		next()
-		val newType = tag.type
-		if (type.toInt() == -1) {
-			type = newType
-		} else if (newType != type) {
-			throw RuntimeException() //LIST_MIXED.createWithContext(this.reader, tagReader_2.getCommandFeedbackName(), tagReader_1.getCommandFeedbackName());
-		}
-		list.add(tag)
-		if (!tryRead(',')) {
-			break
-		}
-		next()
+	if (!tryRead(']')) {
+		do {
+			var tag: Tag
+			do {
+				next()
+
+				tag = readTag()
+				next()
+
+				// that was the type
+			} while (tryRead(';'))
+
+			val newType = tag.type
+			if (type.toInt() == -1) {
+				type = newType
+			} else if (newType != type) {
+				throw RuntimeException() //LIST_MIXED.createWithContext(this.reader, tagReader_2.getCommandFeedbackName(), tagReader_1.getCommandFeedbackName());
+			}
+			list.add(tag)
+		} while (tryRead(','))
+		readChar(']')
 	}
-	readChar(']')
 	return list
 }
 
@@ -396,22 +403,26 @@ private fun Reader.readCompoundChildNode(name: String): PathNode {
 fun Reader.readIntRange(): IntRange {
 	val minValue: Int
 	val maxValue: Int
-	if (tryRead("..")) {
-		minValue = Int.MIN_VALUE
-		maxValue = readInt()
-	} else {
-		minValue = readInt()
-		maxValue = if (tryRead("..")) {
-			if (canRead() && !isWhiteSpace) {
-				readInt()
-			} else {
-				Int.MAX_VALUE
-			}
+	try {
+		if (tryRead("..")) {
+			minValue = Int.MIN_VALUE
+			maxValue = readInt()
 		} else {
-			minValue
+			minValue = readInt()
+			maxValue = if (tryRead("..")) {
+				if (canRead() && peek().let{it == '-' || it in '0'..'9'}) {
+					readInt()
+				} else {
+					Int.MAX_VALUE
+				}
+			} else {
+				minValue
+			}
 		}
+		return IntRange(minValue, maxValue)
+	}catch (ex:ReaderException){
+		throw ReaderException("expected to read a valid range", ex)
 	}
-	return IntRange(minValue, maxValue)
 }
 //endregion
 

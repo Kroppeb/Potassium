@@ -79,11 +79,19 @@ class StringReader : Reader {
 		return line[index - 1]
 	}
 
-	private fun expected(s: String) {
+	private fun expected(s: String):Nothing {
 		/*if(s == "whitespace")
 			error("hi: + $line + ${index+1}")*/
 		throw ReaderException(
 			"Expected to read $s"
+		)
+	}
+
+	private fun expected(s: String, got:String):Nothing {
+		/*if(s == "whitespace")
+			error("hi: + $line + ${index+1}")*/
+		throw ReaderException(
+			"Expected to read $s, got $got"
 		)
 	}
 
@@ -119,7 +127,10 @@ class StringReader : Reader {
 	}
 
 	override fun readChar(c: Char) {
-		if (read() != c) expected("'$c'")
+		if (!canRead()) eof(c)
+		val cc = peek()
+		skip()
+		if (cc != c) expected("'$c'","'$cc'")
 	}
 
 	/**
@@ -131,6 +142,7 @@ class StringReader : Reader {
 		return if (isQuotedStringStart) readQuotedString() else readUnquotedString()
 	}
 
+	private val escapeRegex = Regex("\\\\(.)")
 	override fun readQuotedString(): String {
 		if (!isQuotedStringStart) expected("quote")
 		val pos = index + 1
@@ -138,9 +150,14 @@ class StringReader : Reader {
 		var c: Char
 		do {
 			c = read()
-			if (c == '/') skip()
+			if (c == '\\') skip()
 		} while (c != start)
-		return line.substring(pos, index - 1)
+		return line.substring(pos, index - 1).replace(escapeRegex){when(val v = it.groups[1]!!.value) {
+			"n" -> "\n"
+			"r" -> "\r"
+			"t" -> "\t"
+			else -> v
+		} }
 	}
 
 	override fun readUnquotedString(): String {
@@ -177,7 +194,7 @@ class StringReader : Reader {
 		index = line.length
 	}
 
-	override fun readNumber(): String? {
+	override fun readNumber(): String {
 		var c = peek()
 		val start = index
 		if (c == '-' || c in '0'..'9') {
@@ -189,7 +206,6 @@ class StringReader : Reader {
 			return line.substring(start, index)
 		}
 		expected("a number")
-		return null // UNREACHABLE CODE
 	}
 
 	/**
