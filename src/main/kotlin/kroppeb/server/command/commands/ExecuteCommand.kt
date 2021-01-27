@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Kroppeb
+ * Copyright (c) 2021 Kroppeb
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -121,7 +121,7 @@ class ExecuteCommand : Command {
 				else Positioned(Pos(), readConverter())
 			"rotated" ->
 				if (tryReadLiteral("as")) RotatedAs(Selector(), readConverter())
-				else throw NotImplementedException("todo")
+				else throw ReaderException("todo execute rotated")
 			"store" -> this.readStore()
 			"if" -> this.readIf(true)
 			"unless" -> this.readIf(false)
