@@ -38,6 +38,7 @@ object Parser {
 			"setblock" -> SetBlockCommand.read(reader)
 			"summon" -> SummonCommand.read(reader)
 			"tag" -> TagCommand.read(reader)
+			"title" -> TitleCommand.read(reader)
 			"xp" -> ExperienceCommand.read(reader)
 			else -> throw ReaderException("Unknown command: $command")
 		}
