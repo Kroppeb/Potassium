@@ -30,13 +30,13 @@ sealed class EffectCommand(val selector: Selector) : Command {
 		override fun Reader.parse(): EffectCommand {
 			when (val sub = Literal()) {
 				"clear" -> {
-					if(!canRead())
+					if (!canRead())
 						return ClearAll(Selector.Self)
 					val targets = Selector()
-					if(!canRead())
+					if (!canRead())
 						return ClearAll(targets)
 					val id = Id()
-					val effect = Registry.STATUS_EFFECT[id]?:throw ReaderException("Not a valid effect: $id")
+					val effect = Registry.STATUS_EFFECT[id] ?: throw ReaderException("Not a valid effect: $id")
 					return ClearEffect(targets, effect)
 				}
 
@@ -44,17 +44,17 @@ sealed class EffectCommand(val selector: Selector) : Command {
 				"give" -> {
 					val targets = Selector()
 					val id = Id()
-					val effect = Registry.STATUS_EFFECT[id]?:throw ReaderException("Not a valid effect: $id")
-					if(!canRead())
+					val effect = Registry.STATUS_EFFECT[id] ?: throw ReaderException("Not a valid effect: $id")
+					if (!canRead())
 						return GiveEffect(targets, effect, null, 0, true)
 					val duration = Int()
-					if(!canRead())
+					if (!canRead())
 						return GiveEffect(targets, effect, duration, 0, true)
 					val amplifier = Int()
-					if(!canRead())
+					if (!canRead())
 						return GiveEffect(targets, effect, duration, amplifier, true)
 					val particles = Boolean()
-						return GiveEffect(targets, effect, duration,amplifier, particles)
+					return GiveEffect(targets, effect, duration, amplifier, particles)
 
 				}
 				else -> expected("effect", "(clear|give)", sub)
@@ -85,43 +85,44 @@ sealed class EffectCommand(val selector: Selector) : Command {
 
 	}
 
-}
 
-class GiveEffect private constructor(
-	selector: Selector,
-	val effect: StatusEffect,
-	val duration: Int,
-	val amplifier: Int,
-	val showParticles: Boolean
-) : EffectCommand(selector) {
-	constructor(
+	class GiveEffect private constructor(
 		selector: Selector,
-		effect: StatusEffect,
-		duration: Int?,
-		amplifier: Int,
-		showParticles: Boolean
-	) : this(
-		selector,
-		effect,
-		when {
-			duration != null -> if (effect.isInstant) duration else duration * 20
-			effect.isInstant -> 1
-			else -> 600
-		},
-		amplifier,
-		showParticles
-	)
+		val effect: StatusEffect,
+		val duration: Int,
+		val amplifier: Int,
+		val showParticles: Boolean
+	) : EffectCommand(selector) {
+		constructor(
+			selector: Selector,
+			effect: StatusEffect,
+			duration: Int?,
+			amplifier: Int,
+			showParticles: Boolean
+		) : this(
+			selector,
+			effect,
+			when {
+				duration != null -> if (effect.isInstant) duration else duration * 20
+				effect.isInstant -> 1
+				else -> 600
+			},
+			amplifier,
+			showParticles
+		)
 
-	override fun execute(source: ServerCommandSource): Int {
-		val targets = selector.getEntities(source)
-		val i = targets.count { entity ->
-			entity is LivingEntity &&
-				entity.addStatusEffect(StatusEffectInstance(effect, duration, amplifier, false, showParticles))
+		override fun execute(source: ServerCommandSource): Int {
+			val targets = selector.getEntities(source)
+			val i = targets.count { entity ->
+				entity is LivingEntity &&
+					entity.addStatusEffect(StatusEffectInstance(effect, duration, amplifier, false, showParticles))
+			}
+
+			if (i == 0) throw InvocationError()
+
+			return i
 		}
 
-		if (i == 0) throw InvocationError()
-
-		return i
 	}
 
 }
