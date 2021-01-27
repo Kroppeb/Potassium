@@ -26,6 +26,7 @@ object Parser {
 			"bossbar" -> BossBarCommand.read(reader)
 			"clear" -> ClearCommand.read(reader)
 			"data" -> DataCommand.read(reader)
+			"effect" -> EffectCommand.read(reader)
 			"execute" -> ExecuteCommand.read(reader)
 			"experience" -> ExperienceCommand.read(reader)
 			"function" -> FunctionCommand.read(reader)
