@@ -17,7 +17,7 @@ val asmVersion:String by project
 plugins {
 	java
 	kotlin("jvm") version "1.4.10"
-	id("fabric-loom") version "0.5-SNAPSHOT"
+	id("fabric-loom") version "0.6-SNAPSHOT"
 }
 
 base {
