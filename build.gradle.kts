@@ -17,7 +17,7 @@ val asmVersion:String by project
 plugins {
 	java
 	kotlin("jvm") version "1.4.10"
-	id("fabric-loom") version "0.6-SNAPSHOT"
+	id("fabric-loom") version "0.7-SNAPSHOT"
 }
 
 base {
@@ -35,13 +35,12 @@ java {
 
 minecraft {
 	accessWidener = file("src/main/resources/potassium.accesswidener")
-	refmapName = "mixins.potassium.refmap.json"
 }
 
 repositories {
 	mavenCentral()
 	jcenter()
-	maven(url = "http://maven.fabricmc.net")
+	maven(url = "https://maven.fabricmc.net")
 	maven ( url = "https://jitpack.io" )
 	maven ( url = "https://repository.ow2.org/nexus" )
 }
@@ -50,7 +49,7 @@ dependencies {
 	//to change the versions see the gradle.properties file
 	minecraft("com.mojang:minecraft:$minecraftVersion")
 	mappings("net.fabricmc:yarn:$yarnMappings:v2")
-	modCompile("net.fabricmc:fabric-loader:$loaderVersion")
+	modImplementation("net.fabricmc:fabric-loader:$loaderVersion")
 
 	implementation("org.ow2.asm:asm:$asmVersion")
 	implementation("org.ow2.asm:asm-util:$asmVersion")
